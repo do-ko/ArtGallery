@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { getArtworks } from "../api/artApi";
+import {useEffect, useState} from "react";
+import {getArtworks} from "../api/artApi";
 import type {Art} from "../types/art.ts";
 import type {Page} from "../types/page.ts";
 import "./Gallery.css";
@@ -17,25 +17,49 @@ export default function Gallery() {
         empty: true,
     });
 
-    useEffect(() => {
-        getArtworks('', 0, page.size).then(setPage);
-    }, []);
+    const [title, setTitle] = useState("");
+    const [loading, setLoading] = useState(false);
+    const debouncedQuery = useDebounce(title, 300);
 
-    const next = () => !page.last && getArtworks('', page.number + 1, page.size).then(setPage);
-    const prev = () => !page.first && getArtworks('', page.number - 1, page.size).then(setPage);
+    useEffect(() => {
+        setLoading(true);
+        getArtworks(title, 0, page.size)
+            .then(setPage)
+            .finally(() => setLoading(false));
+    }, [debouncedQuery]);
+
+    const next = () => !page.last && getArtworks(title, page.number + 1, page.size).then(setPage);
+    const prev = () => !page.first && getArtworks(title, page.number - 1, page.size).then(setPage);
 
     return (
         <div className="gallery-root">
             <header className="gallery-header">🎨 Art Gallery</header>
 
+            <div className="gallery-search">
+                <label htmlFor="art-search" className="sr-only">Search artworks</label>
+                <input
+                    id="art-search"
+                    className="search-input"
+                    type="text"
+                    placeholder="Search by title…"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+            </div>
+
+
             <main className="gallery-grid">
-                {page.content.map((art) => (
-                    <article key={art.id} className="art-card" title={art.title}>
-                        <div className="art-card-content">
-                            <span className="art-title">{art.title}</span>
-                        </div>
-                    </article>
-                ))}
+                {loading && page.content.length === 0 ? (
+                    <div className="loading">Searching…</div>
+                ) : (
+                    page.content.map((art) => (
+                        <article key={art.id} className="art-card" title={art.title}>
+                            <div className="art-card-content">
+                                <span className="art-title">{art.title}</span>
+                            </div>
+                        </article>
+                    ))
+                )}
             </main>
 
             <footer className="gallery-footer">
@@ -45,4 +69,13 @@ export default function Gallery() {
             </footer>
         </div>
     );
+}
+
+function useDebounce<T>(value: T, delay = 300): T {
+    const [v, setV] = useState(value);
+    useEffect(() => {
+        const id = setTimeout(() => setV(value), delay);
+        return () => clearTimeout(id);
+    }, [value, delay]);
+    return v;
 }
