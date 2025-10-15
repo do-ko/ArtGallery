@@ -1,7 +1,14 @@
 import {useEffect, useState} from "react";
 import {getArtworks} from "../api/artApi";
-import type {Art} from "../types/art.ts";
-import type {Page} from "../types/page.ts";
+import type {Art} from "../types/art";
+import type {Page} from "../types/page";
+import {useDebounce} from "../hooks/useDebounce";
+
+import HeaderBar from "../components/HeaderBar";
+import SearchBar from "../components/SearchBar";
+import ArtGrid from "../components/ArtGrid";
+import Pagination from "../components/Pagination";
+
 import "./Gallery.css";
 
 export default function Gallery() {
@@ -19,63 +26,36 @@ export default function Gallery() {
 
     const [title, setTitle] = useState("");
     const [loading, setLoading] = useState(false);
-    const debouncedQuery = useDebounce(title, 300);
+    const debouncedTitle = useDebounce(title, 300);
 
     useEffect(() => {
         setLoading(true);
-        getArtworks(title, 0, page.size)
+        getArtworks(debouncedTitle, 0, page.size)
             .then(setPage)
             .finally(() => setLoading(false));
-    }, [debouncedQuery]);
+    }, [debouncedTitle]);
 
-    const next = () => !page.last && getArtworks(title, page.number + 1, page.size).then(setPage);
-    const prev = () => !page.first && getArtworks(title, page.number - 1, page.size).then(setPage);
+    const next = () =>
+        !page.last && getArtworks(debouncedTitle, page.number + 1, page.size).then(setPage);
+    const prev = () =>
+        !page.first && getArtworks(debouncedTitle, page.number - 1, page.size).then(setPage);
 
     return (
         <div className="gallery-root">
-            <header className="gallery-header">🎨 Art Gallery</header>
+            <HeaderBar onLogin={() => console.log("Login clicked")}/>
 
-            <div className="gallery-search">
-                <label htmlFor="art-search" className="sr-only">Search artworks</label>
-                <input
-                    id="art-search"
-                    className="search-input"
-                    type="text"
-                    placeholder="Search by title…"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-            </div>
+            <SearchBar value={title} onChange={setTitle}/>
 
+            <ArtGrid items={page.content} loading={loading}/>
 
-            <main className="gallery-grid">
-                {loading && page.content.length === 0 ? (
-                    <div className="loading">Searching…</div>
-                ) : (
-                    page.content.map((art) => (
-                        <article key={art.id} className="art-card" title={art.title}>
-                            <div className="art-card-content">
-                                <span className="art-title">{art.title}</span>
-                            </div>
-                        </article>
-                    ))
-                )}
-            </main>
-
-            <footer className="gallery-footer">
-                <button onClick={prev} disabled={page.first}>Prev</button>
-                <span>Page {page.number + 1} / {Math.max(page.totalPages, 1)}</span>
-                <button onClick={next} disabled={page.last}>Next</button>
-            </footer>
+            <Pagination
+                page={page.number}
+                totalPages={page.totalPages}
+                first={page.first}
+                last={page.last}
+                onPrev={prev}
+                onNext={next}
+            />
         </div>
     );
-}
-
-function useDebounce<T>(value: T, delay = 300): T {
-    const [v, setV] = useState(value);
-    useEffect(() => {
-        const id = setTimeout(() => setV(value), delay);
-        return () => clearTimeout(id);
-    }, [value, delay]);
-    return v;
 }

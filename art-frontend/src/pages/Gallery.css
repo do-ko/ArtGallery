@@ -91,6 +91,68 @@ html, body, #root {
     cursor: not-allowed;
 }
 
+/* Header container */
+.gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* center by default */
+    position: relative;
+    padding: 1rem 2rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    background: transparent;
+}
+
+/* Title text */
+.gallery-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Log In button (hidden on large screens) */
+.login-btn {
+    position: absolute;
+    right: 2rem;
+    background: transparent;
+    color: #aaa;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.login-btn:hover {
+    color: #fff;
+    border-color: #444;
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Responsive layout: small screens → title left, button right */
+@media (max-width: 768px) {
+    .gallery-header {
+        justify-content: space-between;
+    }
+
+    .gallery-title {
+        font-size: 1.5rem;
+    }
+}
+
 /* screen-reader only label */
 .sr-only {
     position: absolute;
