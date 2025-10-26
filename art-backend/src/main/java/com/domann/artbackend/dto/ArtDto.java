@@ -1,20 +1,22 @@
 package com.domann.artbackend.dto;
 
-import com.domann.artbackend.entiy.Art;
-import com.domann.artbackend.entiy.ArtType;
+import com.domann.artbackend.entity.Art;
+import com.domann.artbackend.entity.ArtType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ArtDto {
-    private String id;
+    private UUID id;
     private String title;
     private String description;
     private ArtType type;
-    private String artistId;
+    private UUID artistId;
 
     public ArtDto(Art art) {
         this.id = art.getId();

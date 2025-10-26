@@ -1,7 +1,7 @@
 package com.domann.artbackend.dto;
 
 import com.domann.artbackend.constants.ValidationConstants;
-import com.domann.artbackend.entiy.ArtType;
+import com.domann.artbackend.entity.ArtType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

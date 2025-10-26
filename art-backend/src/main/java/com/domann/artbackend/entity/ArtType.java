@@ -1,4 +1,4 @@
-package com.domann.artbackend.entiy;
+package com.domann.artbackend.entity;
 
 import lombok.Getter;
 

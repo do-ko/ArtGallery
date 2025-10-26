@@ -1,7 +1,7 @@
 package com.domann.artbackend.service;
 
 import com.domann.artbackend.dto.*;
-import com.domann.artbackend.entiy.Artist;
+import com.domann.artbackend.entity.Artist;
 import com.domann.artbackend.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

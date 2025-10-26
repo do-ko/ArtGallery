@@ -2,8 +2,8 @@ package com.domann.artbackend.service;
 
 import com.domann.artbackend.dto.AddArtRequest;
 import com.domann.artbackend.dto.ArtDto;
-import com.domann.artbackend.entiy.Art;
-import com.domann.artbackend.entiy.Artist;
+import com.domann.artbackend.entity.Art;
+import com.domann.artbackend.entity.Artist;
 import com.domann.artbackend.repository.ArtRepository;
 import com.domann.artbackend.repository.ArtistRepository;
 import jakarta.transaction.Transactional;
