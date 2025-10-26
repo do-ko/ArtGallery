@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build:
+      context: ../art-frontend
+      dockerfile: Dockerfile
+      args:
+        - IP=$IP_ADDRESS
+        - COGNITO_USER_POOL_ID=$COGNITO_USER_POOL_ID
+        - COGNITO_CLIENT_ID=$COGNITO_CLIENT_ID
+        - API_GATEWAY_ID=$API_GATEWAY_ID
+    ports:
+      - "${IP_ADDRESS}:80:80"
+  backend:
+    build:
+      context: ../art-backend
+      dockerfile: Dockerfile
+      args:
+        - COGNITO_USER_POOL_ID=$COGNITO_USER_POOL_ID
+    ports:
+      - "${IP_ADDRESS}:8080:8080"

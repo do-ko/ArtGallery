@@ -42,7 +42,7 @@ export default function Gallery() {
 
     return (
         <div className="gallery-root">
-            <HeaderBar onLogin={() => console.log("Login clicked")}/>
+            <HeaderBar/>
 
             <SearchBar value={title} onChange={setTitle}/>
 

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,15 +21,31 @@ public class Artist {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, updatable = false, length = 64)
-    private String cognitoSub; // from JWT "sub" - prepared for using cognito later!
-
     @Column(nullable = false, length = ValidationConstants.ARTIST_DISPLAY_NAME_MAX_LENGTH)
     private String displayName;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    // =========== COGNITO FIELDS ===========
+    @Column(length = 64, updatable = false)
+    private String cognitoSub;
+
 
     @OneToMany(mappedBy = "artist",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     private Set<Art> artworks = new HashSet<>();
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 }

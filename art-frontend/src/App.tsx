@@ -8,6 +8,7 @@ function App() {
       <BrowserRouter>
           <Routes>
               <Route path="/" element={<Gallery />} />
+              <Route path="/login/callback" element={<Gallery />} />
           </Routes>
       </BrowserRouter>
   )
