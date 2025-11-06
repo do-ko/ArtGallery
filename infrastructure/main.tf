@@ -2,57 +2,199 @@ data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
+module "vpc" {
+  source = "./modules/vpc"
+
+  name = "art-vpc"
+  azs = ["us-east-1a", "us-east-1b"]
+
+  vpc_cidr = "10.0.0.0/16"
+  public_subnet_cidrs = ["10.0.101.0/24", "10.0.102.0/24"]
+  private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+
+  create_nat_gateway = true
+  single_nat_gateway = true
+
+  tags = { Project = "art-gallery", Env = "dev" }
+}
+
+# LOAD BALANCER
+module "alb" {
+  source            = "./modules/alb"
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_ids = module.vpc.public_subnet_ids
+}
+
+resource "aws_security_group" "frontend" {
+  vpc_id = module.vpc.vpc_id
+  ingress {
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+    security_groups = [module.alb.alb_sg_id]
+  }
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "backend" {
+  vpc_id = module.vpc.vpc_id
+  ingress {
+    from_port = 8080
+    to_port   = 8080
+    protocol  = "tcp"
+    security_groups = [module.alb.alb_sg_id]
+  }
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# ECR
 module "ecr" {
   source = "./modules/ecr"
   region = var.region
 }
 
 module "frontend_image_build" {
-  source     = "./modules/image_build"
-  repo_url   = module.ecr.frontend_repo_url
-  repo_name  = module.ecr.frontend_repo_name
-  path = "../art-frontend"
+  source    = "./modules/image_build"
+  repo_url  = module.ecr.frontend_repo_url
+  repo_name = module.ecr.frontend_repo_name
+  path      = "../art-frontend"
 }
 
 module "backend_image_build" {
-  source     = "./modules/image_build"
-  repo_url   = module.ecr.backend_repo_url
-  repo_name  = module.ecr.backend_repo_name
-  path = "../art-backend"
+  source    = "./modules/image_build"
+  repo_url  = module.ecr.backend_repo_url
+  repo_name = module.ecr.backend_repo_name
+  path      = "../art-backend"
+}
+
+module "ecs_cluster" {
+  source = "./modules/ecs_cluster"
+  name   = "art-ecs"
 }
 
 module "frontend_logs" {
   source = "./modules/logs"
   name   = "/ecs/art-frontend"
-  tags   = { Project = "art-gallery", Component = "frontend" }
+  tags = { Project = "art-gallery", Component = "frontend" }
 }
 
 module "backend_logs" {
   source = "./modules/logs"
   name   = "/ecs/art-backend"
-  tags   = { Project = "art-gallery", Component = "backend" }
+  tags = { Project = "art-gallery", Component = "backend" }
 }
 
+
+# RDS
+module "db" {
+  source             = "./modules/rds"
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  ingress_security_group_ids = [aws_security_group.backend.id]
+  db_name            = "artgallerydb"
+  username           = "artgallerydbuser"
+}
+
+# ECS
 module "frontend_taskdef" {
-  source              = "./modules/ecs"
+  source              = "./modules/ecs_task_definition"
   family              = "art-frontend"
   execution_role_arn  = data.aws_iam_role.lab_role.arn
   container_image_ref = module.frontend_image_build.image_ref
   aws_region          = var.region
   log_group_name      = module.frontend_logs.log_group_name
+  container_name      = "frontend-container"
+  container_port      = 80
 
-  depends_on = [ module.frontend_image_build ]
+  depends_on = [module.frontend_image_build]
 }
 
 module "backend_taskdef" {
-  source              = "./modules/ecs"
+  source              = "./modules/ecs_task_definition"
   family              = "art-backend"
   execution_role_arn  = data.aws_iam_role.lab_role.arn
   container_image_ref = module.backend_image_build.image_ref
   aws_region          = var.region
   log_group_name      = module.backend_logs.log_group_name
+  container_name      = "backend-container"
+  container_port      = 8080
 
-  depends_on = [ module.backend_image_build ]
+  environment = [
+    {
+      name  = "SPRING_DATASOURCE_URL"
+      value = "jdbc:postgresql://${module.db.db_endpoint}:5432/artgallerydb"
+    },
+    {
+      name  = "SPRING_PROFILES_ACTIVE"
+      value = "prod"
+    }
+  ]
+
+  secrets = [
+    {
+      name       = "SPRING_DATASOURCE_USERNAME"
+      value_from = "${module.db.db_secret_arn}:username::"
+    },
+    {
+      name       = "SPRING_DATASOURCE_PASSWORD"
+      value_from = "${module.db.db_secret_arn}:password::"
+    }
+  ]
+
+  depends_on = [module.backend_image_build]
+}
+
+
+module "ecs_service_frontend" {
+  source           = "./modules/ecs_service"
+  name             = "frontend-service"
+  cluster_id       = module.ecs_cluster.id
+  task_definition  = module.frontend_taskdef.task_definition_arn
+  subnets          = module.vpc.private_subnet_ids
+  security_groups = [aws_security_group.frontend.id]
+  assign_public_ip = false
+  desired_count    = 2
+
+  load_balancers = [
+    {
+      target_group_arn = module.alb.fe_tg_arn
+      container_name   = "frontend-container"
+      container_port   = 80
+    }
+  ]
+
+  depends_on = [module.alb.listener_http_arn]
+}
+
+module "ecs_service_backend" {
+  source           = "./modules/ecs_service"
+  name             = "backend-service"
+  cluster_id       = module.ecs_cluster.id
+  task_definition  = module.backend_taskdef.task_definition_arn
+  subnets          = module.vpc.private_subnet_ids
+  security_groups = [aws_security_group.backend.id]
+  assign_public_ip = false
+  desired_count    = 2
+
+  load_balancers = [
+    {
+      target_group_arn = module.alb.be_tg_arn
+      container_name   = "backend-container"
+      container_port   = 8080
+    }
+  ]
+
+  depends_on = [module.alb.listener_http_arn]
 }
 
 

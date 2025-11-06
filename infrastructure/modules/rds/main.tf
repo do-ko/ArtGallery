@@ -1,18 +1,29 @@
-resource "aws_secretsmanager_secret" "db_password" {
-  name = "${var.db_name}-db-password"
+#  HASŁO DO BAZY
+resource "aws_secretsmanager_secret" "db_credentials" {
+  name = "${var.db_name}-db-credentials"
   tags = var.tags
 }
 
-resource "aws_secretsmanager_secret_version" "db_password" {
-  secret_id     = aws_secretsmanager_secret.db_password.id
-  secret_string = random_password.db.result
-}
-
 resource "random_password" "db" {
-  length  = 24
-  special = true
+  length           = 24
+  special          = true
+  override_special = "!#$%^&*()-_=+[]{}<>?:.,;"
+  min_lower        = 1
+  min_upper        = 1
+  min_numeric      = 1
+  min_special      = 1
 }
 
+resource "aws_secretsmanager_secret_version" "db_credentials" {
+  secret_id = aws_secretsmanager_secret.db_credentials.id
+
+  secret_string = jsonencode({
+    username = var.username
+    password = random_password.db.result
+  })
+}
+
+# NETWORK
 resource "aws_db_subnet_group" "this" {
   name       = "${var.db_name}-subnets"
   subnet_ids = var.private_subnet_ids
@@ -40,14 +51,18 @@ resource "aws_security_group" "rds" {
   }
 }
 
+# INSTANCJA BAZY
 resource "aws_db_instance" "postgres" {
   identifier              = "${var.db_name}-pg"
   engine                  = "postgres"
   engine_version          = var.engine_version
   instance_class          = var.instance_class
   db_name                 = var.db_name
+
   username                = var.username
-  password                = aws_secretsmanager_secret_version.db_password.secret_string
+  password = jsondecode(aws_secretsmanager_secret_version.db_credentials.secret_string)["password"]
+
+
   allocated_storage       = var.allocated_storage
   storage_encrypted       = true
   skip_final_snapshot     = true
