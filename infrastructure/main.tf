@@ -11,12 +11,26 @@ module "frontend_image_build" {
   source     = "./modules/image_build"
   repo_url   = module.ecr.frontend_repo_url
   repo_name  = module.ecr.frontend_repo_name
+  path = "../art-frontend"
+}
+
+module "backend_image_build" {
+  source     = "./modules/image_build"
+  repo_url   = module.ecr.backend_repo_url
+  repo_name  = module.ecr.backend_repo_name
+  path = "../art-backend"
 }
 
 module "frontend_logs" {
   source = "./modules/logs"
   name   = "/ecs/art-frontend"
   tags   = { Project = "art-gallery", Component = "frontend" }
+}
+
+module "backend_logs" {
+  source = "./modules/logs"
+  name   = "/ecs/art-backend"
+  tags   = { Project = "art-gallery", Component = "backend" }
 }
 
 module "frontend_taskdef" {
@@ -28,6 +42,17 @@ module "frontend_taskdef" {
   log_group_name      = module.frontend_logs.log_group_name
 
   depends_on = [ module.frontend_image_build ]
+}
+
+module "backend_taskdef" {
+  source              = "./modules/ecs"
+  family              = "art-backend"
+  execution_role_arn  = data.aws_iam_role.lab_role.arn
+  container_image_ref = module.backend_image_build.image_ref
+  aws_region          = var.region
+  log_group_name      = module.backend_logs.log_group_name
+
+  depends_on = [ module.backend_image_build ]
 }
 
 

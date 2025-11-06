@@ -1,9 +1,7 @@
 FROM maven:3.8.7-eclipse-temurin-17 AS build
-ARG COGNITO_USER_POOL_ID
 WORKDIR /art-backend
 COPY pom.xml .
 COPY src ./src
-RUN sed -i "s/userpoolid/$COGNITO_USER_POOL_ID/g" ./src/main/resources/application.properties
 
 RUN mvn clean package -DskipTests
 

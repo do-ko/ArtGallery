@@ -6,14 +6,8 @@ variable "image_tag" {
   default = "latest"
 }
 
-variable "frontend_source" {
+variable "path" {
   type    = string
-  default = "../art-frontend"
-}
-
-variable "backend_source" {
-  type    = string
-  default = "../art-backend"
 }
 
 variable "platform" {

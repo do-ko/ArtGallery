@@ -9,7 +9,7 @@ terraform {
 resource "docker_image" "image" {
   name = "${var.repo_url}:${var.image_tag}"
   build {
-    context    = var.frontend_source
+    context    = var.path
     dockerfile = "Dockerfile"
     platform   = var.platform
   }
