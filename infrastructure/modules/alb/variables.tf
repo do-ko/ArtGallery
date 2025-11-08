@@ -29,10 +29,10 @@ variable "fe_health_path" {
 }
 variable "be_health_path" {
   type    = string
-  default = "/api"
+  default = "/swagger-ui/index.html"
 }
 
 variable "api_path_pattern" {
-  type    = string
-  default = "/api/*"
+  type    = list(string)
+  default = ["/api/*", "/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*"]
 }
