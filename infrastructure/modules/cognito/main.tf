@@ -44,27 +44,22 @@ resource "aws_cognito_user_pool_client" "client" {
   name         = var.app_client_name
   user_pool_id = aws_cognito_user_pool.pool.id
 
-  generate_secret               = var.app_client_oauth.generate_secret
-  prevent_user_existence_errors = var.app_client_oauth.prevent_user_existence_errors
+  generate_secret               = false
+  prevent_user_existence_errors = "ENABLED"
 
-  allowed_oauth_flows_user_pool_client = var.app_client_oauth.allowed_oauth_flows_user_pool_client
-  allowed_oauth_flows                  = var.app_client_oauth.allowed_oauth_flows
-  allowed_oauth_scopes                 = var.app_client_oauth.allowed_oauth_scopes
-  callback_urls                        = var.app_client_oauth.callback_urls
-  logout_urls                          = var.app_client_oauth.logout_urls
+  explicit_auth_flows = [
+    "ALLOW_USER_SRP_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH"
+  ]
 
-  access_token_validity  = var.app_client_oauth.access_token_validity_hours
-  id_token_validity      = var.app_client_oauth.id_token_validity_hours
-  refresh_token_validity = var.app_client_oauth.refresh_token_validity_hours
+  access_token_validity        = var.app_client_times.access_token_validity_hours
+  id_token_validity            = var.app_client_times.id_token_validity_hours
+  refresh_token_validity       = var.app_client_times.refresh_token_validity_hours
+
   token_validity_units {
     access_token  = "hours"
     id_token      = "hours"
     refresh_token = "hours"
   }
-}
-
-// CREATE COGNITO DOMAIN
-resource "aws_cognito_user_pool_domain" "domain" {
-  domain       = var.domain_prefix
-  user_pool_id = aws_cognito_user_pool.pool.id
 }

@@ -6,17 +6,8 @@ output "user_pool_client_id" {
   value = aws_cognito_user_pool_client.client.id
 }
 
-output "domain" {
-  description = "Base Hosted UI domain URL"
-  value = format(
-    "https://%s.auth.%s.%s",
-    aws_cognito_user_pool_domain.domain.domain,
-    data.aws_region.current.id,
-    data.aws_partition.current.dns_suffix
-  )
-}
-
 data "aws_region" "current" {}
+
 data "aws_partition" "current" {}
 
 output "issuer_url" {

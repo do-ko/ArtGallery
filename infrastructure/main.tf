@@ -57,7 +57,6 @@ resource "aws_security_group" "backend" {
   }
 }
 
-
 # ECR
 module "ecr" {
   source = "./modules/ecr"
@@ -111,20 +110,7 @@ module "cognito" {
   name            = "art_user_pool"
   domain_prefix   = "do-ko-art-domain"
   app_client_name = "art-client"
-  app_client_oauth = {
-    allowed_oauth_flows_user_pool_client = true
-    allowed_oauth_flows = ["code"]
-    allowed_oauth_scopes = ["openid", "email", "profile"]
-    callback_urls = ["http://localhost/auth/callback"]
-    logout_urls = ["http://localhost/logout"]
-    prevent_user_existence_errors        = "ENABLED"
-    access_token_validity_hours          = 1
-    id_token_validity_hours              = 1
-    refresh_token_validity_hours         = 3
-    generate_secret                      = false
-  }
 }
-
 
 # ECS
 module "frontend_taskdef" {
@@ -138,11 +124,9 @@ module "frontend_taskdef" {
   container_port      = 80
 
   environment = [
-    { name = "COGNITO_ISSUER_URI", value = module.cognito.issuer_url },
-    { name = "COGNITO_DOMAIN_BASE", value = module.cognito.domain },
+    { name = "AWS_REGION", value = var.region },
+    { name = "COGNITO_USER_POOL_ID", value = module.cognito.user_pool_id },
     { name = "COGNITO_CLIENT_ID", value = module.cognito.user_pool_client_id },
-    { name = "REDIRECT_URI", value = "http://localhost/auth/callback" },
-    { name = "LOGOUT_URI", value = "http://localhost/logout" },
     { name = "API_BASE", value = "/api" }
   ]
 
@@ -188,6 +172,7 @@ module "backend_taskdef" {
   depends_on = [module.backend_image_build]
 }
 
+# ECS SERVICE
 module "ecs_service_frontend" {
   source           = "./modules/ecs_service"
   name             = "frontend-service"
