@@ -1,5 +1,5 @@
 // CREATING USER POOL FOR COGNITO
-resource "aws_cognito_user_pool" "this" {
+resource "aws_cognito_user_pool" "pool" {
   name = var.name
 
   email_configuration {
@@ -40,9 +40,9 @@ resource "aws_cognito_user_pool" "this" {
 }
 
 // CREATING COGNITO USER POOL CLIENT
-resource "aws_cognito_user_pool_client" "this" {
+resource "aws_cognito_user_pool_client" "client" {
   name         = var.app_client_name
-  user_pool_id = aws_cognito_user_pool.this.id
+  user_pool_id = aws_cognito_user_pool.pool.id
 
   generate_secret               = var.app_client_oauth.generate_secret
   prevent_user_existence_errors = var.app_client_oauth.prevent_user_existence_errors
@@ -64,7 +64,7 @@ resource "aws_cognito_user_pool_client" "this" {
 }
 
 // CREATE COGNITO DOMAIN
-resource "aws_cognito_user_pool_domain" "this" {
+resource "aws_cognito_user_pool_domain" "domain" {
   domain       = var.domain_prefix
-  user_pool_id = aws_cognito_user_pool.this.id
+  user_pool_id = aws_cognito_user_pool.pool.id
 }

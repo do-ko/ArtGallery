@@ -35,6 +35,10 @@ resource "aws_lb_target_group" "fe" {
   health_check {
     path    = var.fe_health_path
     matcher = "200-399"
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 }
 
@@ -47,6 +51,10 @@ resource "aws_lb_target_group" "be" {
   health_check {
     path    = var.be_health_path
     matcher = "200-399"
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 }
 

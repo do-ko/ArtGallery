@@ -5,9 +5,13 @@ terraform {
   }
 }
 
+locals {
+  image_version = formatdate("YYYYMMDD-HHmmss", timestamp())
+}
+
 # LOKALNE BUDOWANIE OBRAZU
 resource "docker_image" "image" {
-  name = "${var.repo_url}:${var.image_tag}"
+  name = "${var.repo_url}:${local.image_version}"
   build {
     context    = var.path
     dockerfile = "Dockerfile"
@@ -15,14 +19,24 @@ resource "docker_image" "image" {
   }
 }
 
+resource "docker_tag" "latest" {
+  source_image = docker_image.image.name
+  target_image = "${var.repo_url}:latest"
+}
+
 # PUSH DO ECR
-resource "docker_registry_image" "image" {
+resource "docker_registry_image" "versioned" {
   name = docker_image.image.name
 }
 
+resource "docker_registry_image" "latest" {
+  name       = docker_tag.latest.target_image
+  depends_on = [docker_tag.latest]
+}
+
 # DIGEST Z ECR (po pushu)
-data "aws_ecr_image" "this" {
+data "aws_ecr_image" "digest" {
   repository_name = var.repo_name
-  image_tag       = var.image_tag
-  depends_on      = [docker_registry_image.image]
+  image_tag       = local.image_version
+  depends_on      = [docker_registry_image.versioned]
 }
