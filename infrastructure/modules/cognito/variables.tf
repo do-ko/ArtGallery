@@ -18,7 +18,7 @@ variable "password_policy" {
     require_symbols : bool
   })
   default = {
-    minimum_length    = 6
+    minimum_length    = 12
     require_uppercase = true
     require_lowercase = true
     require_numbers   = true
@@ -35,7 +35,7 @@ variable "auto_verified_attributes" {
 variable "enable_email_link_confirm" {
   description = "Czy użyć linku weryfikacyjnego w mailu"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "app_client_name" {

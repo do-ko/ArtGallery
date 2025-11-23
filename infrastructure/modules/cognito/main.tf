@@ -11,7 +11,7 @@ resource "aws_cognito_user_pool" "pool" {
   dynamic "verification_message_template" {
     for_each = var.enable_email_link_confirm ? [1] : []
     content {
-      default_email_option = "CONFIRM_WITH_LINK"
+      default_email_option = "CONFIRM_WITH_CODE"
     }
   }
 

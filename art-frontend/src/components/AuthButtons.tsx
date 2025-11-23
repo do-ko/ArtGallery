@@ -1,13 +1,31 @@
 import {useEffect, useState} from "react";
-import {getSession, signOut} from "../auth/cognito";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../auth/AuthContext.tsx";
 
 export function AuthButtons() {
     const [signedIn, setSignedIn] = useState(false);
     const navigate = useNavigate();
+    const {signOut, getSession} = useAuth();
 
     useEffect(() => {
-        getSession().then(() => setSignedIn(true)).catch(() => setSignedIn(false));
+        if (import.meta.env.MODE !== 'production') {
+            setSignedIn(false);
+            return;
+        }
+
+        getSession()
+            .then((session) => {
+                if (session.isValid()) {
+                    setSignedIn(true);
+                } else {
+                    signOut();
+                    setSignedIn(false);
+                }
+            })
+            .catch(() => {
+                signOut();
+                setSignedIn(false);
+            });
     }, []);
 
     if (!signedIn) return (
@@ -19,7 +37,8 @@ export function AuthButtons() {
     return (<button className={"auth-btn"}
                     onClick={() => {
                         signOut();
-                        location.reload();
+                        setSignedIn(false);
+                        navigate("/");
                     }}>
         Log out
     </button>);

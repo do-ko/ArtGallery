@@ -40,6 +40,7 @@ export default function Gallery() {
     const prev = () =>
         !page.first && getArtworks(debouncedTitle, page.number - 1, page.size).then(setPage);
 
+
     return (
         <div className="gallery-root">
             <HeaderBar/>

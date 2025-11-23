@@ -151,6 +151,7 @@ input:focus {
     margin-top: 4px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
     color: var(--muted);
     font-size: 13px;
@@ -163,12 +164,6 @@ input:focus {
     text-decoration: none;
     cursor: not-allowed;
     opacity: 0.65;
-}
-
-.footer {
-    margin-top: 12px;
-    display: flex;
-    justify-content: center;
 }
 
 .ghost {
