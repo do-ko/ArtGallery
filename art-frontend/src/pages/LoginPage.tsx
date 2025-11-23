@@ -3,6 +3,7 @@ import "./LoginPage.css";
 import {useNavigate} from "react-router-dom";
 import {ConfirmEmailForm} from "../components/ConfirmEmailForm";
 import {useAuth} from "../auth/AuthContext.tsx";
+import {handleFirstLogin} from "../api/artApi.ts";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function LoginPage() {
     const [pending, setPending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showPwd, setShowPwd] = useState(false);
-    const {signIn} = useAuth();
+    const {signIn, getAuthHeader} = useAuth();
 
     const canSubmit = useMemo(() => {
         if (mode === "login") return email.trim().length > 0 && password.length > 0;
@@ -37,7 +38,15 @@ export default function LoginPage() {
 
         if (mode === "login") {
             signIn(email, password)
-                .then(() => {
+                .then(async () => {
+                    const authHeader = await getAuthHeader();
+
+                    console.log(authHeader)
+
+                    const artist = await handleFirstLogin(authHeader)
+
+                    console.log("Artist:", artist);
+
                     navigate("/")
                 })
                 .catch((err) => {

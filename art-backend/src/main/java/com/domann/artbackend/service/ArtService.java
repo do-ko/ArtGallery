@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +31,9 @@ public class ArtService {
 
 
     @Transactional
-    public ArtDto addNewArt(AddArtRequest addArtRequest) {
-        Artist artist = artistRepository.findById(addArtRequest.getArtistId())
-                .orElseThrow(() -> new NoSuchElementException("Artist with id: " + addArtRequest.getArtistId() + " not found."));
+    public ArtDto addNewArt(AddArtRequest addArtRequest, String cognitoSub) {
+        Artist artist = artistRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new NoSuchElementException("Artist with sub: " + cognitoSub + " not found."));
 
         Art art = new Art();
         art.setTitle(addArtRequest.getTitle());

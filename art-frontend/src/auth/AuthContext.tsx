@@ -15,6 +15,7 @@ type AuthContextType = {
     signOut: () => void;
     confirmSignUp: (email: string, code: string) => Promise<void>;
     resendConfirmationCode: (email: string) => Promise<void>;
+    getAuthHeader: () => Promise<string>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -91,9 +92,37 @@ export const AuthProvider = (props: any) => {
         });
     }
 
+    const getAuthHeader = async (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const user = UserPool.getCurrentUser();
+            if (!user) return reject("Brak użytkownika — nie zalogowany");
+
+            user.getSession(async (err : any, session : CognitoUserSession) => {
+                if (err || !session) return reject("Brak sesji");
+
+                const accessToken = session.getAccessToken();
+                const now = Math.floor(Date.now() / 1000);
+
+                if (accessToken.getExpiration() > now) {
+                    return resolve(`Bearer ${accessToken.getJwtToken()}`);
+                }
+
+                const refreshTok = session.getRefreshToken();
+                if (!refreshTok) return reject("Brak refresh tokena — zaloguj się ponownie");
+
+                user.refreshSession(refreshTok, (err, newSession) => {
+                    if (err || !newSession) return reject("Nie udało się odświeżyć sesji");
+
+                    return resolve(`Bearer ${newSession.getAccessToken().getJwtToken()}`);
+                });
+            });
+        });
+    };
+
+
     return (
         <AuthContext.Provider
-            value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode}}>
+            value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode, getAuthHeader}}>
             {props.children}
         </AuthContext.Provider>
     )

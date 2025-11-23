@@ -26,8 +26,4 @@ public class AddArtRequest {
             example = "PAINTING")
     @NotNull(message = "Art type is required")
     private ArtType type;
-
-    @Schema(description = "Artist id with at most {max} characters", example = "f4aa9f39-8f18-4c56-b8d8-aa61b255940")
-    @NotBlank(message = "Artist id must not be empty or contain only whitespaces")
-    private String artistId;
 }

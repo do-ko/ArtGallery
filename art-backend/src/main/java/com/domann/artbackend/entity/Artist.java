@@ -30,10 +30,10 @@ public class Artist {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "display_name", nullable = false, length = ValidationConstants.ARTIST_DISPLAY_NAME_MAX_LENGTH)
+    @Column(name = "display_name", length = ValidationConstants.ARTIST_DISPLAY_NAME_MAX_LENGTH)
     private String displayName;
 
-    @Column(name = "email", length = 255)
+    @Column(name = "email", nullable = false, length = 255)
     private String email;
 
     @Column(name = "created_at", nullable = false)
