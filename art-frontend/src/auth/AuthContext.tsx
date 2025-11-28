@@ -119,7 +119,6 @@ export const AuthProvider = (props: any) => {
         });
     };
 
-
     return (
         <AuthContext.Provider
             value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode, getAuthHeader}}>

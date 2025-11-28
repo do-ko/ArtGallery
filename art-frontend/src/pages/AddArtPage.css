@@ -1,0 +1,97 @@
+.addArtContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    color: #eee;
+    min-height: 100vh;
+}
+
+/* Tytuł strony */
+.addArtTitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 2rem 0 1rem 0;
+    color: #fff;
+}
+
+/* Formularz */
+.addArtForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    max-width: 700px;
+}
+
+/* Etykiety */
+.addArtForm label {
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 1rem;
+    color: #ccc;
+}
+
+/* Pola formularza */
+.addArtForm input,
+.addArtForm textarea,
+.addArtForm select {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    background: #1a1a1a; /* ciemne pole */
+    color: #eee;
+    border-radius: 10px;
+    border: 1px solid #333;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.addArtForm input:focus,
+.addArtForm textarea:focus,
+.addArtForm select:focus {
+    border-color: #7a5cff;
+    background: #1f1f1f;
+    outline: none;
+}
+
+.addArtForm textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+/* Przycisk */
+.addArtSubmitBtn {
+    margin-top: 1rem;
+    padding: 0.9rem;
+    font-size: 1.1rem;
+    background: linear-gradient(90deg, #7c3aed, #9f67ff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.addArtSubmitBtn:hover {
+    opacity: 0.9;
+}
+
+.addArtSubmitBtn:active {
+    transform: scale(0.97);
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

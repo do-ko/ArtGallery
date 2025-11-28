@@ -25,3 +25,19 @@ export const getArtworks = async (title?: string, page?: number, size?: number) 
     console.log("response.data: ", response.data)
     return response.data;
 };
+
+export const addArtwork = async (authHeader: string, title: string,  description: string, type: string) => {
+    const response = await axios.post<Art>(`${apiBase}/art`,
+        {
+            title,
+            description,
+            type
+        },
+        {
+            headers: {
+                Authorization: authHeader
+            }
+        });
+    console.log("response.data: ", response.data)
+    return response.data;
+};
