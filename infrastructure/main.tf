@@ -141,6 +141,7 @@ module "frontend_taskdef" {
   source              = "./modules/ecs_task_definition"
   family              = "art-frontend"
   execution_role_arn  = data.aws_iam_role.lab_role.arn
+  task_role_arn      = data.aws_iam_role.lab_role.arn
   container_image_ref = module.frontend_image_build.image_ref
   aws_region          = var.region
   log_group_name      = module.frontend_logs.log_group_name
@@ -161,6 +162,7 @@ module "backend_taskdef" {
   source              = "./modules/ecs_task_definition"
   family              = "art-backend"
   execution_role_arn  = data.aws_iam_role.lab_role.arn
+  task_role_arn      = data.aws_iam_role.lab_role.arn
   container_image_ref = module.backend_image_build.image_ref
   aws_region          = var.region
   log_group_name      = module.backend_logs.log_group_name
@@ -183,6 +185,10 @@ module "backend_taskdef" {
     {
       name  = "INTERNAL_SECRET"
       value = var.lambda_secret
+    },
+    {
+      name  = "S3_BUCKET"
+      value = module.art_storage.bucket_name
     }
   ]
 

@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +27,6 @@ public class ArtService {
         Page<Art> pageWithArt = artRepository.findAllByTitleContainingIgnoreCase(title, pageable);
         return pageWithArt.map(ArtDto::new);
     }
-
 
     @Transactional
     public ArtDto addNewArt(AddArtRequest addArtRequest, String cognitoSub) {
