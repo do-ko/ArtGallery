@@ -57,6 +57,13 @@ resource "aws_security_group" "backend" {
   }
 }
 
+# S3
+module "art_storage" {
+  source      = "./modules/s3"
+  bucket_name = "art-storage-s3"
+  alb_dns     = module.alb.alb_dns_name
+}
+
 # ECR
 module "ecr" {
   source = "./modules/ecr"
