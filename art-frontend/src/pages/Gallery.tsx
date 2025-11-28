@@ -10,8 +10,10 @@ import ArtGrid from "../components/ArtGrid";
 import Pagination from "../components/Pagination";
 
 import "./Gallery.css";
+import {useAuth} from "../auth/AuthContext.tsx";
 
 export default function Gallery() {
+    const {getSession, setIsLoggedIn} = useAuth();
     const [page, setPage] = useState<Page<Art>>({
         content: [],
         number: 0,
@@ -27,6 +29,12 @@ export default function Gallery() {
     const [title, setTitle] = useState("");
     const [loading, setLoading] = useState(false);
     const debouncedTitle = useDebounce(title, 300);
+
+    useEffect(() => {
+        getSession()
+            .then(s => setIsLoggedIn(s.isValid()))
+            .catch(() => setIsLoggedIn(false));
+    }, []);
 
     useEffect(() => {
         setLoading(true);

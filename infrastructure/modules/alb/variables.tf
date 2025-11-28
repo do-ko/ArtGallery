@@ -34,5 +34,5 @@ variable "be_health_path" {
 
 variable "api_path_pattern" {
   type    = list(string)
-  default = ["/api/*", "/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*"]
+  default = ["/api/*", "/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*", "/internal/*"]
 }

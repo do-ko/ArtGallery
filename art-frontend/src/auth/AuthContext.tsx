@@ -1,4 +1,4 @@
-import {createContext, useContext} from "react";
+import {createContext, type Dispatch, type SetStateAction, useContext, useState} from "react";
 import {
     AuthenticationDetails,
     CognitoUser,
@@ -16,11 +16,15 @@ type AuthContextType = {
     confirmSignUp: (email: string, code: string) => Promise<void>;
     resendConfirmationCode: (email: string) => Promise<void>;
     getAuthHeader: () => Promise<string>;
+    isLoggedIn : boolean;
+    setIsLoggedIn: Dispatch<SetStateAction<boolean>>
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = (props: any) => {
+
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const signUp = async (email: string, password: string): Promise<{ userSub: string }> => {
         return await new Promise((resolve, reject) => {
@@ -33,7 +37,7 @@ export const AuthProvider = (props: any) => {
         });
     }
 
-    const signIn = async (username: string, password: string): Promise<CognitoUserSession> => {
+        const signIn = async (username: string, password: string): Promise<CognitoUserSession> => {
         return await new Promise((resolve, reject) => {
             const user = new CognitoUser({Username: username, Pool: UserPool});
             const details = new AuthenticationDetails({Username: username, Password: password});
@@ -72,10 +76,10 @@ export const AuthProvider = (props: any) => {
         return UserPool.getCurrentUser();
     };
 
-
     const signOut = (): void => {
         const user = UserPool.getCurrentUser();
         if (user) user.signOut();
+        setIsLoggedIn(false);
     }
 
     const confirmSignUp = async (email: string, code: string): Promise<void> => {
@@ -121,7 +125,7 @@ export const AuthProvider = (props: any) => {
 
     return (
         <AuthContext.Provider
-            value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode, getAuthHeader}}>
+            value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode, getAuthHeader, isLoggedIn, setIsLoggedIn}}>
             {props.children}
         </AuthContext.Provider>
     )

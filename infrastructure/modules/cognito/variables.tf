@@ -55,3 +55,8 @@ variable "app_client_times" {
     refresh_token_validity_hours         = 3
   }
 }
+
+variable "post_confirmation_lambda_arn" {
+  type        = string
+  description = "ARN of the Lambda function used for the PostConfirmation trigger"
+}

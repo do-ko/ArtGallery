@@ -82,6 +82,7 @@ module "ecs_cluster" {
   name   = "art-ecs"
 }
 
+# CLOUDWATCH
 module "frontend_logs" {
   source = "./modules/logs"
   name   = "/ecs/art-frontend"
@@ -104,12 +105,28 @@ module "db" {
   username           = "artgallerydbuser"
 }
 
+# LAMBDA
+module "post_confirmation_lambda" {
+  source            = "./modules/lambda"
+  function_name     = "cognito_post_confirmation"
+  existing_role_arn = data.aws_iam_role.lab_role.arn
+  filename          = "./modules/lambda/lambda.zip"
+  handler           = "index.handler"
+  runtime           = "nodejs18.x"
+
+  environment = {
+    INTERNAL_SECRET = var.lambda_secret
+    API_URL         = module.alb.alb_dns_name
+  }
+}
+
 # COGNITO
 module "cognito" {
   source          = "./modules/cognito"
   name            = "art_user_pool"
   domain_prefix   = "do-ko-art-domain"
   app_client_name = "art-client"
+  post_confirmation_lambda_arn = module.post_confirmation_lambda.lambda_arn
 }
 
 # ECS
@@ -155,6 +172,10 @@ module "backend_taskdef" {
     {
       name  = "COGNITO_ISSUER_URI"
       value = module.cognito.issuer_url
+    },
+    {
+      name  = "INTERNAL_SECRET"
+      value = var.lambda_secret
     }
   ]
 

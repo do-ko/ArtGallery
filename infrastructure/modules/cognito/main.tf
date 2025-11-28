@@ -37,6 +37,10 @@ resource "aws_cognito_user_pool" "pool" {
       priority = 1
     }
   }
+
+  lambda_config {
+    post_confirmation = var.post_confirmation_lambda_arn
+  }
 }
 
 // CREATING COGNITO USER POOL CLIENT
@@ -62,4 +66,14 @@ resource "aws_cognito_user_pool_client" "client" {
     id_token      = "hours"
     refresh_token = "hours"
   }
+}
+
+
+// PROVIDING LAMBDA PERMISSIONS
+resource "aws_lambda_permission" "allow_post_confirmation" {
+  statement_id  = "AllowExecutionFromCognito"
+  action        = "lambda:InvokeFunction"
+  function_name = var.post_confirmation_lambda_arn
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.pool.arn
 }
