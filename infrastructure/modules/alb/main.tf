@@ -70,7 +70,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# Rule: /api/* -> backend
+# Rule: ścieżka backendu (no /api albo /swagger) -> backend
 resource "aws_lb_listener_rule" "api" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 10

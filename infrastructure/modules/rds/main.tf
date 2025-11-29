@@ -25,7 +25,7 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
 }
 
 # NETWORK
-resource "aws_db_subnet_group" "this" {
+resource "aws_db_subnet_group" "subnet_group" {
   name       = "${var.db_name}-subnets"
   subnet_ids = var.private_subnet_ids
   tags       = var.tags
@@ -69,7 +69,7 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot     = true
   publicly_accessible     = false
   vpc_security_group_ids  = [aws_security_group.rds.id]
-  db_subnet_group_name    = aws_db_subnet_group.this.name
+  db_subnet_group_name    = aws_db_subnet_group.subnet_group.name
   multi_az                = var.multi_az
   deletion_protection     = var.deletion_protection
 

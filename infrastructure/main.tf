@@ -84,10 +84,7 @@ module "backend_image_build" {
   path      = "../art-backend"
 }
 
-module "ecs_cluster" {
-  source = "./modules/ecs_cluster"
-  name   = "art-ecs"
-}
+
 
 # CLOUDWATCH
 module "frontend_logs" {
@@ -137,6 +134,11 @@ module "cognito" {
 }
 
 # ECS
+module "ecs_cluster" {
+  source = "./modules/ecs_cluster"
+  name   = "art-ecs"
+}
+
 module "frontend_taskdef" {
   source              = "./modules/ecs_task_definition"
   family              = "art-frontend"
