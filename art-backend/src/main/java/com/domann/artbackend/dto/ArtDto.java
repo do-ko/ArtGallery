@@ -16,6 +16,7 @@ public class ArtDto {
     private String title;
     private String description;
     private ArtType type;
+    private String imageUrl;
     private UUID artistId;
 
     public ArtDto(Art art) {
@@ -23,6 +24,7 @@ public class ArtDto {
         this.title = art.getTitle();
         this.description = art.getDescription();
         this.type = art.getType();
+        this.imageUrl = art.getImageUrl();
         this.artistId = art.getArtist().getId();
     }
 }

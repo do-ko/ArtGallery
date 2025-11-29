@@ -2,21 +2,9 @@ import axios from "axios";
 import type {Art} from "../types/art.ts";
 import type {Page} from "../types/page.ts";
 import {APP_CONFIG} from "../types/config.ts";
-import type {Artist} from "../types/artist.ts";
+import type {PresignedUrl} from "../types/presignedUrl.ts";
 
 const apiBase = APP_CONFIG.API_BASE ?? "http://localhost:8080/api";
-
-export const handleFirstLogin = async (authHeader: string) => {
-    const response = await axios.post<Artist>(`${apiBase}/artist/first-login`,
-        {},
-        {
-            headers: {
-                Authorization: authHeader
-            }
-        });
-    console.log("response.data: ", response.data)
-    return response.data;
-};
 
 export const getArtworks = async (title?: string, page?: number, size?: number) => {
     const response = await axios.get<Page<Art>>(`${apiBase}/art`, {
@@ -26,12 +14,13 @@ export const getArtworks = async (title?: string, page?: number, size?: number) 
     return response.data;
 };
 
-export const addArtwork = async (authHeader: string, title: string,  description: string, type: string) => {
+export const addArtwork = async (authHeader: string, title: string, description: string, type: string, imageUrl: string) => {
     const response = await axios.post<Art>(`${apiBase}/art`,
         {
             title,
             description,
-            type
+            type,
+            imageUrl
         },
         {
             headers: {
@@ -41,3 +30,19 @@ export const addArtwork = async (authHeader: string, title: string,  description
     console.log("response.data: ", response.data)
     return response.data;
 };
+
+export const addArtworkImage = async (authHeader: string, filename: string, contentType: string) => {
+    const response = await axios.post<PresignedUrl>(`${apiBase}/art/url`,
+        {
+            filename: filename,
+            contentType: contentType
+        },
+        {
+            headers: {
+                Authorization: authHeader
+            }
+        }
+    )
+    console.log("response.data: ", response.data)
+    return response.data;
+}

@@ -1,0 +1,2 @@
+ALTER TABLE art
+    ADD COLUMN image_url VARCHAR(512);

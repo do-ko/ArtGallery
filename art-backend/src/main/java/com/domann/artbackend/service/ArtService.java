@@ -37,6 +37,7 @@ public class ArtService {
         art.setTitle(addArtRequest.getTitle());
         art.setDescription(addArtRequest.getDescription());
         art.setType(addArtRequest.getType());
+        art.setImageUrl(addArtRequest.getImageUrl());
         art.setArtist(artist);
 
         Art savedArt = artRepository.save(art);

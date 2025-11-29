@@ -26,4 +26,9 @@ public class AddArtRequest {
             example = "PAINTING")
     @NotNull(message = "Art type is required")
     private ArtType type;
+
+    @Schema(description = "Art image url to access the art image",
+            example = "???")
+    @NotNull(message = "Art image url is required")
+    private String imageUrl;
 }

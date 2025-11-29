@@ -3,6 +3,7 @@ package com.domann.artbackend.controller;
 import com.domann.artbackend.dto.AddArtRequest;
 import com.domann.artbackend.dto.ArtDto;
 import com.domann.artbackend.dto.ArtImageUploadRequest;
+import com.domann.artbackend.dto.PresignedUrlResponse;
 import com.domann.artbackend.service.ArtService;
 import com.domann.artbackend.service.AwsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,8 +35,8 @@ public class ArtController {
 
     @GetMapping
     public ResponseEntity<Page<ArtDto>> getFilteredArts(@RequestParam(defaultValue = "") String title,
-                                             @RequestParam(defaultValue = "0") int page,
-                                             @RequestParam(defaultValue = "30") int size){
+                                                        @RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "30") int size) {
         Page<ArtDto> pageWithArtDto = artService.findFilteredByTitle(title, page, size);
         return ResponseEntity.ok(pageWithArtDto);
     }
@@ -49,15 +50,15 @@ public class ArtController {
     }
 
     @PostMapping("/url")
-    public Map<String, String> generate(@RequestBody ArtImageUploadRequest request) {
+    public ResponseEntity<PresignedUrlResponse> generate(@RequestBody ArtImageUploadRequest request) {
 
         String key = "artworks/" + UUID.randomUUID() + "-" + request.getFilename();
 
         URL uploadUrl = awsService.generateUploadUrl(key, request.getContentType());
 
-        return Map.of(
-                "uploadUrl", uploadUrl.toString(),
-                "fileUrl", "https://" + bucket + ".s3.amazonaws.com/" + key
-        );
+        PresignedUrlResponse response = new PresignedUrlResponse(
+                uploadUrl.toString(),
+                "https://" + bucket + ".s3.amazonaws.com/" + key);
+        return ResponseEntity.ok(response);
     }
 }

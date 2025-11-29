@@ -38,6 +38,9 @@ public class Art {
     @Column(name = "type")
     private ArtType type;
 
+    @Column(name = "imageUrl", length = 512)
+    private String imageUrl;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
