@@ -169,34 +169,6 @@ html, body, #root {
     gap: 0.5rem;
 }
 
-/* Log In button (hidden on large screens) */
-.auth-btn {
-    position: absolute;
-    right: 2rem;
-    background: transparent;
-    color: #aaa;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(4px);
-}
-
-.auth-btn:hover {
-    color: #fff;
-    border-color: #444;
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateY(-1px);
-}
-
-.auth-btn:active {
-    transform: translateY(0);
-    background: rgba(255, 255, 255, 0.08);
-}
-
 /* Responsive layout: small screens → title left, button right */
 @media (max-width: 768px) {
     .gallery-header {

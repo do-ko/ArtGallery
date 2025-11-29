@@ -1,13 +1,13 @@
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../auth/AuthContext.tsx";
-import "./AddArtButton.css"
+import "./Button.css"
 
 export function AddArtButton() {
     const navigate = useNavigate();
     const {isLoggedIn} = useAuth();
     if (!isLoggedIn) return;
 
-    return (<button className={"add-art-btn"}
+    return (<button className={"secondary-btn art-btn-position"}
                     onClick={() => {
                         navigate("/addArt");
                     }}>

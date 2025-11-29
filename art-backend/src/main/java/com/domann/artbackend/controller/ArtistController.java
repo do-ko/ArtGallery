@@ -17,12 +17,12 @@ public class ArtistController {
 
     private final ArtistService artistService;
 
-    @PostMapping("/first-login")
-    public ResponseEntity<ArtistDto> createOnFirstLogin(@AuthenticationPrincipal Jwt jwt) {
+    @GetMapping("/me")
+    public ResponseEntity<ArtistDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
         String sub = jwt.getClaimAsString("sub");
         String email = jwt.getClaimAsString("username");
 
-        ArtistDto artistDto = artistService.findOrCreate(sub, email);
+        ArtistDto artistDto = artistService.findByToken(sub, email);
         return ResponseEntity.ok(artistDto);
     }
 

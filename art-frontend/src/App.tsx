@@ -6,6 +6,7 @@ import SignUpPage from "./pages/SignUpPage.tsx";
 import {AuthProvider} from "./auth/AuthContext.tsx";
 import AddArtPage from "./pages/AddArtPage.tsx";
 import ProtectedRoute from "./auth/ProtectedRoute.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 
 function App() {
 
@@ -19,6 +20,11 @@ function App() {
                     <Route path="/addart" element={
                         <ProtectedRoute>
                             <AddArtPage/>
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/profile" element={
+                        <ProtectedRoute>
+                            <ProfilePage/>
                         </ProtectedRoute>
                     }/>
                 </Routes>

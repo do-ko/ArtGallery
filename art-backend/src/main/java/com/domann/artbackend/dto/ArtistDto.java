@@ -15,11 +15,13 @@ import java.util.UUID;
 public class ArtistDto {
     private UUID id;
     private String displayName;
+    private String email;
     private List<UUID> artworkIds;
 
     public ArtistDto(Artist artist) {
         this.id = artist.getId();
         this.displayName = artist.getDisplayName();
+        this.email = artist.getEmail();
         this.artworkIds = artist.getArtworks().stream().map(Art::getId).toList();
     }
 }

@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../auth/AuthContext.tsx";
+import './Button.css'
 
 export function AuthButtons() {
     const [signedIn, setSignedIn] = useState(false);
@@ -29,12 +30,12 @@ export function AuthButtons() {
     }, []);
 
     if (!signedIn) return (
-        <button className={"auth-btn"}
+        <button className={"primary-btn auth-btn-position"}
                 onClick={() => navigate("/login")}>
             Log in
         </button>);
 
-    return (<button className={"auth-btn"}
+    return (<button className={"primary-btn auth-btn-position"}
                     onClick={() => {
                         signOut();
                         setSignedIn(false);

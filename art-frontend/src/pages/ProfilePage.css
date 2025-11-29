@@ -1,0 +1,148 @@
+/*===== Overall Page Layout ===== */
+
+.profile-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    color: #eee;
+    min-height: 100vh;
+}
+
+.profile-card {
+    background: #141414;
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    width: 850px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    margin-bottom: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #9f67ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+}
+
+.profile-info h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.edit-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.edit-icon:hover {
+    opacity: 1;
+}
+
+.edit-input {
+    padding: 0.5rem 0.8rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: white;
+}
+
+.save-btn, .cancel-btn {
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border: none;
+}
+
+.save-btn {
+    background: #7c3aed;
+    color: white;
+}
+
+.cancel-btn {
+    background: #333;
+    color: #ddd;
+}
+
+.artworks-box {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #1b1b1b;
+    border-radius: 12px;
+}
+
+.artworks-placeholder {
+    margin-top: 1rem;
+    opacity: 0.5;
+    font-size: 0.95rem;
+}
+
+.name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #bbb;
+    padding: 0.25rem;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.icon-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn.save {
+    color: #8fff8f;
+}
+
+.icon-btn.save:hover {
+    background: rgba(0, 255, 120, 0.15);
+}
+
+.icon-btn.cancel {
+    color: #ff8f8f;
+}
+
+.icon-btn.cancel:hover {
+    background: rgba(255, 0, 0, 0.15);
+}
+
+.edit-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1c1c1c;
+    color: #eee;
+    width: 250px;
+}

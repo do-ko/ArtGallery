@@ -1,5 +1,6 @@
 import {AuthButtons} from "./AuthButtons.tsx";
 import {AddArtButton} from "./AddArtButton.tsx";
+import {ProfileButton} from "./ProfileButton.tsx";
 
 
 export default function HeaderBar() {
@@ -7,8 +8,9 @@ export default function HeaderBar() {
         <header className="gallery-header">
             <h1 className="gallery-title">🎨 Art Gallery</h1>
 
-            <AddArtButton />
-            <AuthButtons />
+            <AddArtButton/>
+            <ProfileButton />
+            <AuthButtons/>
         </header>
     );
 }
