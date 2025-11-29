@@ -36,6 +36,33 @@ html, body, #root {
     box-sizing: border-box;
 }
 
+/* Artwork image inside a square card */
+.art-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* placeholder when no image */
+.art-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #555;
+    background: #1e1e1e;
+    border-radius: 12px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 /* Square responsive cards */
 .art-card {
     aspect-ratio: 1 / 1;
@@ -47,6 +74,8 @@ html, body, #root {
     justify-content: center;
     transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .art-card:hover {
@@ -55,13 +84,39 @@ html, body, #root {
     box-shadow: 0 8px 20px rgba(0,0,0,0.45);
 }
 
-.art-title {
-    font-weight: 500;
-    font-size: 1.1rem;
-    text-align: center;
-    padding: 0 0.5rem;
-    word-wrap: break-word;
+.art-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+    padding: 1rem;
+
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
+
+.art-card:hover .art-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.art-title {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/*.art-title {*/
+/*    font-weight: 500;*/
+/*    font-size: 1.1rem;*/
+/*    text-align: center;*/
+/*    padding: 0 0.5rem;*/
+/*    word-wrap: break-word;*/
+/*}*/
 
 /* Footer */
 .gallery-footer {

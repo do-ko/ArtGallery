@@ -3,5 +3,6 @@ export type Art = {
     title: string;
     description?: string;
     type: string;
+    imageUrl: string;
     artistId: string;
 };
