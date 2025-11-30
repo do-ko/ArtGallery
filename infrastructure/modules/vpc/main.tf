@@ -5,7 +5,7 @@ locals {
   )
 }
 
-resource "aws_vpc" "this" {
+resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -14,7 +14,7 @@ resource "aws_vpc" "this" {
 
 # Internet Gateway dla publicznych
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.vpc.id
   tags   = merge(local.common_tags, { Component = "igw" })
 }
 
@@ -22,7 +22,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "public" {
   for_each = { for idx, cidr in var.public_subnet_cidrs : idx => { cidr = cidr, az = var.azs[idx] } }
 
-  vpc_id                  = aws_vpc.this.id
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = each.value.cidr
   availability_zone       = each.value.az
   map_public_ip_on_launch = true
@@ -37,7 +37,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   for_each = { for idx, cidr in var.private_subnet_cidrs : idx => { cidr = cidr, az = var.azs[idx] } }
 
-  vpc_id            = aws_vpc.this.id
+  vpc_id            = aws_vpc.vpc.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "private" {
 
 # Public route table -> IGW
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.vpc.id
   tags   = merge(local.common_tags, { Component = "public-rt" })
 }
 
@@ -65,33 +65,10 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public.id
 }
 
-# NAT (opcjonalnie)
-resource "aws_eip" "nat" {
-  count = var.create_nat_gateway && var.single_nat_gateway ? 1 : 0
-  domain = "vpc"
-  tags   = merge(local.common_tags, { Component = "nat-eip" })
-}
-
-resource "aws_nat_gateway" "nat" {
-  count         = var.create_nat_gateway && var.single_nat_gateway ? 1 : 0
-  allocation_id = aws_eip.nat[0].id
-  subnet_id     = values(aws_subnet.public)[0].id   # NAT w pierwszym public subnet
-  tags          = merge(local.common_tags, { Component = "nat" })
-  depends_on    = [aws_internet_gateway.igw]
-}
-
-# Private route table (jedna wspólna)
+# Private route table
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.vpc.id
   tags   = merge(local.common_tags, { Component = "private-rt" })
-}
-
-# Trasa z prywatnych do NAT (jeśli włączony)
-resource "aws_route" "private_to_nat" {
-  count                  = var.create_nat_gateway && var.single_nat_gateway ? 1 : 0
-  route_table_id         = aws_route_table.private.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
 resource "aws_route_table_association" "private_assoc" {
