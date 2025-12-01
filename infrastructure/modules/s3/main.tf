@@ -11,15 +11,6 @@ resource "aws_s3_bucket_versioning" "versioning" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "public_access" {
-  bucket = aws_s3_bucket.art_bucket.id
-
-  block_public_acls       = false
-  ignore_public_acls      = false
-  block_public_policy     = false
-  restrict_public_buckets = false
-}
-
 resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
   bucket = aws_s3_bucket.art_bucket.bucket
 
@@ -37,7 +28,6 @@ resource "aws_s3_bucket_cors_configuration" "cors" {
     allowed_headers = ["*"]
     allowed_methods = ["PUT", "POST", "GET"]
     allowed_origins = [ "http://${var.alb_dns}"]
-    expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
 }
