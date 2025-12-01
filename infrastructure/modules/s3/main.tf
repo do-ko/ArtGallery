@@ -45,4 +45,6 @@ resource "aws_s3_bucket_policy" "public_read" {
       Resource  = "${aws_s3_bucket.art_bucket.arn}/*"
     }]
   })
+
+  depends_on = [aws_s3_bucket_public_access_block.public_access]
 }
