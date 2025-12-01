@@ -24,6 +24,18 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
+variable "create_nat_gateway" {
+  description = "Czy utworzyć NAT Gateway dla prywatnych subnetów"
+  type        = bool
+  default     = true
+}
+
+variable "single_nat_gateway" {
+  description = "Jeden NAT GW współdzielony przez wszystkie prywatne subnets (taniej)"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "Dodatkowe tagi"
   type        = map(string)
