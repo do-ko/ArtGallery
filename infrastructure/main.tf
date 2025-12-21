@@ -57,198 +57,210 @@ resource "aws_security_group" "backend" {
   }
 }
 
-# S3
-module "art_storage" {
-  source      = "./modules/s3"
-  bucket_name = "art-storage-s3"
-  alb_dns     = module.alb.alb_dns_name
-}
-
-# ECR
-module "ecr" {
-  source = "./modules/ecr"
-  region = var.region
-}
-
-module "frontend_image_build" {
-  source    = "./modules/image_build"
-  repo_url  = module.ecr.frontend_repo_url
-  repo_name = module.ecr.frontend_repo_name
-  path      = "../art-frontend"
-}
-
-module "backend_image_build" {
-  source    = "./modules/image_build"
-  repo_url  = module.ecr.backend_repo_url
-  repo_name = module.ecr.backend_repo_name
-  path      = "../art-backend"
-}
-
-
-
-# CLOUDWATCH
-module "frontend_logs" {
-  source = "./modules/logs"
-  name   = "/ecs/art-frontend"
-  tags = { Project = "art-gallery", Component = "frontend" }
-}
-
-module "backend_logs" {
-  source = "./modules/logs"
-  name   = "/ecs/art-backend"
-  tags = { Project = "art-gallery", Component = "backend" }
-}
-
-# RDS
-module "db" {
-  source             = "./modules/rds"
-  vpc_id             = module.vpc.vpc_id
+# KEYCLOAK
+module "keycloak" {
+  source = "./modules/keycloak"
+  keycloak_alb_sg_id = module.alb.alb_sg_id
+  keycloak_vpc_id = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
-  ingress_security_group_ids = [aws_security_group.backend.id]
-  db_name            = "artgallerydb"
-  username           = "artgallerydbuser"
+  role_name = data.aws_iam_role.lab_role.name
+  keycloak_alb_listener_http_arn = module.alb.listener_http_arn
+  alb_dns = module.alb.alb_dns_name
 }
 
-# LAMBDA
-module "post_confirmation_lambda" {
-  source            = "./modules/lambda"
-  function_name     = "cognito_post_confirmation"
-  existing_role_arn = data.aws_iam_role.lab_role.arn
-  filename          = "./modules/lambda/lambda.zip"
-  handler           = "index.handler"
-  runtime           = "nodejs18.x"
 
-  environment = {
-    INTERNAL_SECRET = var.lambda_secret
-    API_URL         = module.alb.alb_dns_name
-  }
-}
-
-# COGNITO
-module "cognito" {
-  source          = "./modules/cognito"
-  name            = "art_user_pool"
-  domain_prefix   = "do-ko-art-domain"
-  app_client_name = "art-client"
-  post_confirmation_lambda_arn = module.post_confirmation_lambda.lambda_arn
-}
-
-# ECS
-module "ecs_cluster" {
-  source = "./modules/ecs_cluster"
-  name   = "art-ecs"
-}
-
-module "frontend_taskdef" {
-  source              = "./modules/ecs_task_definition"
-  family              = "art-frontend"
-  execution_role_arn  = data.aws_iam_role.lab_role.arn
-  task_role_arn      = data.aws_iam_role.lab_role.arn
-  container_image_ref = module.frontend_image_build.image_ref
-  aws_region          = var.region
-  log_group_name      = module.frontend_logs.log_group_name
-  container_name      = "frontend-container"
-  container_port      = 80
-
-  environment = [
-    { name = "AWS_REGION", value = var.region },
-    { name = "COGNITO_USER_POOL_ID", value = module.cognito.user_pool_id },
-    { name = "COGNITO_CLIENT_ID", value = module.cognito.user_pool_client_id },
-    { name = "API_BASE", value = "/api" }
-  ]
-
-  depends_on = [module.frontend_image_build]
-}
-
-module "backend_taskdef" {
-  source              = "./modules/ecs_task_definition"
-  family              = "art-backend"
-  execution_role_arn  = data.aws_iam_role.lab_role.arn
-  task_role_arn      = data.aws_iam_role.lab_role.arn
-  container_image_ref = module.backend_image_build.image_ref
-  aws_region          = var.region
-  log_group_name      = module.backend_logs.log_group_name
-  container_name      = "backend-container"
-  container_port      = 8080
-
-  environment = [
-    {
-      name  = "SPRING_DATASOURCE_URL"
-      value = "jdbc:postgresql://${module.db.db_endpoint}:5432/artgallerydb"
-    },
-    {
-      name  = "SPRING_PROFILES_ACTIVE"
-      value = "prod"
-    },
-    {
-      name  = "COGNITO_ISSUER_URI"
-      value = module.cognito.issuer_url
-    },
-    {
-      name  = "INTERNAL_SECRET"
-      value = var.lambda_secret
-    },
-    {
-      name  = "S3_BUCKET"
-      value = module.art_storage.bucket_name
-    }
-  ]
-
-  secrets = [
-    {
-      name       = "SPRING_DATASOURCE_USERNAME"
-      value_from = "${module.db.db_secret_arn}:username::"
-    },
-    {
-      name       = "SPRING_DATASOURCE_PASSWORD"
-      value_from = "${module.db.db_secret_arn}:password::"
-    }
-  ]
-
-  depends_on = [module.backend_image_build]
-}
-
-# ECS SERVICE
-module "ecs_service_frontend" {
-  source           = "./modules/ecs_service"
-  name             = "frontend-service"
-  cluster_id       = module.ecs_cluster.id
-  task_definition  = module.frontend_taskdef.task_definition_arn
-  subnets          = module.vpc.private_subnet_ids
-  security_groups = [aws_security_group.frontend.id]
-  assign_public_ip = false
-  desired_count    = 2
-
-
-  load_balancers = [
-    {
-      target_group_arn = module.alb.fe_tg_arn
-      container_name   = "frontend-container"
-      container_port   = 80
-    }
-  ]
-
-  depends_on = [module.alb.listener_http_arn]
-}
-
-module "ecs_service_backend" {
-  source           = "./modules/ecs_service"
-  name             = "backend-service"
-  cluster_id       = module.ecs_cluster.id
-  task_definition  = module.backend_taskdef.task_definition_arn
-  subnets          = module.vpc.private_subnet_ids
-  security_groups = [aws_security_group.backend.id]
-  assign_public_ip = false
-  desired_count    = 2
-
-  load_balancers = [
-    {
-      target_group_arn = module.alb.be_tg_arn
-      container_name   = "backend-container"
-      container_port   = 8080
-    }
-  ]
-
-  depends_on = [module.alb.listener_http_arn]
-}
+# # S3
+# module "art_storage" {
+#   source      = "./modules/s3"
+#   bucket_name = "art-storage-s3"
+#   alb_dns     = module.alb.alb_dns_name
+# }
+#
+# # ECR
+# module "ecr" {
+#   source = "./modules/ecr"
+#   region = var.region
+# }
+#
+# module "frontend_image_build" {
+#   source    = "./modules/image_build"
+#   repo_url  = module.ecr.frontend_repo_url
+#   repo_name = module.ecr.frontend_repo_name
+#   path      = "../art-frontend"
+# }
+#
+# module "backend_image_build" {
+#   source    = "./modules/image_build"
+#   repo_url  = module.ecr.backend_repo_url
+#   repo_name = module.ecr.backend_repo_name
+#   path      = "../art-backend"
+# }
+#
+#
+#
+# # CLOUDWATCH
+# module "frontend_logs" {
+#   source = "./modules/logs"
+#   name   = "/ecs/art-frontend"
+#   tags = { Project = "art-gallery", Component = "frontend" }
+# }
+#
+# module "backend_logs" {
+#   source = "./modules/logs"
+#   name   = "/ecs/art-backend"
+#   tags = { Project = "art-gallery", Component = "backend" }
+# }
+#
+# # RDS
+# module "db" {
+#   source             = "./modules/rds"
+#   vpc_id             = module.vpc.vpc_id
+#   private_subnet_ids = module.vpc.private_subnet_ids
+#   ingress_security_group_ids = [aws_security_group.backend.id]
+#   db_name            = "artgallerydb"
+#   username           = "artgallerydbuser"
+# }
+#
+# # LAMBDA
+# module "post_confirmation_lambda" {
+#   source            = "./modules/lambda"
+#   function_name     = "cognito_post_confirmation"
+#   existing_role_arn = data.aws_iam_role.lab_role.arn
+#   filename          = "./modules/lambda/lambda.zip"
+#   handler           = "index.handler"
+#   runtime           = "nodejs18.x"
+#
+#   environment = {
+#     INTERNAL_SECRET = var.lambda_secret
+#     API_URL         = module.alb.alb_dns_name
+#   }
+# }
+#
+# # COGNITO
+# module "cognito" {
+#   source          = "./modules/cognito"
+#   name            = "art_user_pool"
+#   domain_prefix   = "do-ko-art-domain"
+#   app_client_name = "art-client"
+#   post_confirmation_lambda_arn = module.post_confirmation_lambda.lambda_arn
+# }
+#
+# # ECS
+# module "ecs_cluster" {
+#   source = "./modules/ecs_cluster"
+#   name   = "art-ecs"
+# }
+#
+# module "frontend_taskdef" {
+#   source              = "./modules/ecs_task_definition"
+#   family              = "art-frontend"
+#   execution_role_arn  = data.aws_iam_role.lab_role.arn
+#   task_role_arn      = data.aws_iam_role.lab_role.arn
+#   container_image_ref = module.frontend_image_build.image_ref
+#   aws_region          = var.region
+#   log_group_name      = module.frontend_logs.log_group_name
+#   container_name      = "frontend-container"
+#   container_port      = 80
+#
+#   environment = [
+#     { name = "AWS_REGION", value = var.region },
+#     { name = "COGNITO_USER_POOL_ID", value = module.cognito.user_pool_id },
+#     { name = "COGNITO_CLIENT_ID", value = module.cognito.user_pool_client_id },
+#     { name = "API_BASE", value = "/api" }
+#   ]
+#
+#   depends_on = [module.frontend_image_build]
+# }
+#
+# module "backend_taskdef" {
+#   source              = "./modules/ecs_task_definition"
+#   family              = "art-backend"
+#   execution_role_arn  = data.aws_iam_role.lab_role.arn
+#   task_role_arn      = data.aws_iam_role.lab_role.arn
+#   container_image_ref = module.backend_image_build.image_ref
+#   aws_region          = var.region
+#   log_group_name      = module.backend_logs.log_group_name
+#   container_name      = "backend-container"
+#   container_port      = 8080
+#
+#   environment = [
+#     {
+#       name  = "SPRING_DATASOURCE_URL"
+#       value = "jdbc:postgresql://${module.db.db_endpoint}:5432/artgallerydb"
+#     },
+#     {
+#       name  = "SPRING_PROFILES_ACTIVE"
+#       value = "prod"
+#     },
+#     {
+#       name  = "COGNITO_ISSUER_URI"
+#       value = module.cognito.issuer_url
+#     },
+#     {
+#       name  = "INTERNAL_SECRET"
+#       value = var.lambda_secret
+#     },
+#     {
+#       name  = "S3_BUCKET"
+#       value = module.art_storage.bucket_name
+#     }
+#   ]
+#
+#   secrets = [
+#     {
+#       name       = "SPRING_DATASOURCE_USERNAME"
+#       value_from = "${module.db.db_secret_arn}:username::"
+#     },
+#     {
+#       name       = "SPRING_DATASOURCE_PASSWORD"
+#       value_from = "${module.db.db_secret_arn}:password::"
+#     }
+#   ]
+#
+#   depends_on = [module.backend_image_build]
+# }
+#
+# # ECS SERVICE
+# module "ecs_service_frontend" {
+#   source           = "./modules/ecs_service"
+#   name             = "frontend-service"
+#   cluster_id       = module.ecs_cluster.id
+#   task_definition  = module.frontend_taskdef.task_definition_arn
+#   subnets          = module.vpc.private_subnet_ids
+#   security_groups = [aws_security_group.frontend.id]
+#   assign_public_ip = false
+#   desired_count    = 2
+#
+#
+#   load_balancers = [
+#     {
+#       target_group_arn = module.alb.fe_tg_arn
+#       container_name   = "frontend-container"
+#       container_port   = 80
+#     }
+#   ]
+#
+#   depends_on = [module.alb.listener_http_arn]
+# }
+#
+# module "ecs_service_backend" {
+#   source           = "./modules/ecs_service"
+#   name             = "backend-service"
+#   cluster_id       = module.ecs_cluster.id
+#   task_definition  = module.backend_taskdef.task_definition_arn
+#   subnets          = module.vpc.private_subnet_ids
+#   security_groups = [aws_security_group.backend.id]
+#   assign_public_ip = false
+#   desired_count    = 2
+#
+#   load_balancers = [
+#     {
+#       target_group_arn = module.alb.be_tg_arn
+#       container_name   = "backend-container"
+#       container_port   = 8080
+#     }
+#   ]
+#
+#   depends_on = [module.alb.listener_http_arn]
+# }
 
