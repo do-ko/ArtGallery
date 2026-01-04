@@ -4,8 +4,8 @@ import "./Button.css"
 
 export function AddArtButton() {
     const navigate = useNavigate();
-    const {isLoggedIn} = useAuth();
-    if (!isLoggedIn) return;
+    const {isAuthenticated} = useAuth();
+    if (!isAuthenticated) return;
 
     return (<button className={"secondary-btn art-btn-position"}
                     onClick={() => {

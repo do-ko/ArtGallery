@@ -54,7 +54,7 @@ resource "aws_lb_listener_rule" "keycloak" {
 
   condition {
     path_pattern {
-      values = ["/admin/*", "/realms/*", "/resources/*"]
+      values = ["/.well-known/*", "/realms/*", "/resources/*", "/admin/*"]
     }
   }
 }
@@ -94,14 +94,20 @@ resource "aws_instance" "keycloak" {
   vpc_security_group_ids = [aws_security_group.keycloak.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = file("${path.module}/user-data-keycloak.sh")
+  user_data = templatefile(
+    "${path.module}/user-data-keycloak.sh.tpl",
+    {
+      alb_dns = var.alb_dns,
+      smtp_user = var.smtp_user,
+      smtp_app_password = var.smtp_app_password
+    }
+  )
   user_data_replace_on_change = true
 
   tags = {
     Name = "keycloak-ec2"
   }
 }
-
 
 resource "aws_lb_target_group_attachment" "keycloak" {
   target_group_arn = aws_lb_target_group.keycloak.arn

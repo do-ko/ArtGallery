@@ -1,12 +1,11 @@
 import './App.css'
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import Gallery from "./pages/Gallery.tsx";
-import LoginPage from "./pages/LoginPage.tsx";
-import SignUpPage from "./pages/SignUpPage.tsx";
 import {AuthProvider} from "./auth/AuthContext.tsx";
 import AddArtPage from "./pages/AddArtPage.tsx";
 import ProtectedRoute from "./auth/ProtectedRoute.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
+import AuthCallback from "./auth/AuthCallback.tsx";
 
 function App() {
 
@@ -15,8 +14,6 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Gallery/>}/>
-                    <Route path="/login" element={<LoginPage/>}/>
-                    <Route path="/signup" element={<SignUpPage/>}/>
                     <Route path="/addart" element={
                         <ProtectedRoute>
                             <AddArtPage/>
@@ -27,6 +24,7 @@ function App() {
                             <ProfilePage/>
                         </ProtectedRoute>
                     }/>
+                    <Route path="/auth/callback" element={<AuthCallback/>}/>
                 </Routes>
             </BrowserRouter>
         </AuthProvider>

@@ -1,131 +1,125 @@
-import {createContext, type Dispatch, type SetStateAction, useContext, useState} from "react";
-import {
-    AuthenticationDetails,
-    CognitoUser,
-    CognitoUserAttribute,
-    CognitoUserSession
-} from "amazon-cognito-identity-js";
-import {UserPool} from "./cognito.ts";
+import {createContext, useContext} from "react";
 
 type AuthContextType = {
-    signUp: (email: string, password: string) => Promise<{ userSub: string }>;
-    signIn: (username: string, password: string) => Promise<CognitoUserSession>;
-    getSession: () => Promise<CognitoUserSession>;
-    getCurrentUser: () => CognitoUser | null;
-    signOut: () => void;
-    confirmSignUp: (email: string, code: string) => Promise<void>;
-    resendConfirmationCode: (email: string) => Promise<void>;
-    getAuthHeader: () => Promise<string>;
-    isLoggedIn : boolean;
-    setIsLoggedIn: Dispatch<SetStateAction<boolean>>
+    login: () => void;
+    logout: () => void;
+    isAuthenticated: () => boolean;
+    setTokenData: (id_token : string, access_token: string) => void;
+    getAccessToken: () => string | null;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = (props: any) => {
 
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const APP_CONFIG = window.__APP_CONFIG__ || {};
+    const STORAGE_ACCESS_TOKEN_KEY = "access_token";
+    const STORAGE_ID_TOKEN_KEY = "id_token";
 
-    const signUp = async (email: string, password: string): Promise<{ userSub: string }> => {
-        return await new Promise((resolve, reject) => {
-            const attributes = [new CognitoUserAttribute({Name: "email", Value: email})];
+    const login = async () => {
+        console.log(":::::::::::::: logging in ::::::::::::::")
+        const clientId = APP_CONFIG.KEYCLOAK_CLIENT_ID;
+        const realm = APP_CONFIG.KEYCLOAK_REALM;
+        const baseUrl = window.location.origin;
+        const redirectUri = `${baseUrl}/auth/callback`;
+        const codeVerifier = generateCodeVerifier();
+        const codeChallenge = codeVerifier;
 
-            UserPool.signUp(email, password, attributes, [], (err, result) => {
-                if (err || !result) return reject(err);
-                resolve({userSub: result.userSub});
-            });
-        });
+        console.log("clientId: ", clientId);
+        console.log("realm: ", realm);
+        console.log("baseUrl: ", baseUrl);
+        console.log("redirectUri: ", redirectUri);
+        console.log("codeVerifier: ", codeVerifier);
+        console.log("codeChallenge: ", codeChallenge);
+
+        sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+
+
+        const authUrl =
+            `${baseUrl}/realms/${realm}/protocol/openid-connect/auth` +
+            `?client_id=${encodeURIComponent(clientId)}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=code` +
+            `&scope=openid` +
+            `&code_challenge=${codeChallenge}` +
+            `&code_challenge_method=plain`;
+
+        console.log("authUrl: ", authUrl);
+
+        window.location.href = authUrl;
     }
 
-        const signIn = async (username: string, password: string): Promise<CognitoUserSession> => {
-        return await new Promise((resolve, reject) => {
-            const user = new CognitoUser({Username: username, Pool: UserPool});
-            const details = new AuthenticationDetails({Username: username, Password: password});
+    const logout = () => {
+        console.log(":::::::::::::: logging out ::::::::::::::")
+        const idToken = sessionStorage.getItem(STORAGE_ID_TOKEN_KEY);
+        const realm = APP_CONFIG.KEYCLOAK_REALM;
+        const baseUrl = window.location.origin;
+        const postLogoutRedirectUri = window.location.origin;
 
-            user.authenticateUser(details, {
-                onSuccess: (data) => {
-                    console.log("data", data);
-                    resolve(data);
-                },
-                onFailure: (err) => {
-                    console.log("err")
-                    reject(err);
-                },
-                newPasswordRequired: (data) => {
-                    console.log("newPasswordRequired")
-                    resolve(data)
-                }
-            });
-        })
+        clearToken()
+
+        let logoutUrl =
+            `${baseUrl}/realms/${realm}/protocol/openid-connect/logout` +
+            `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+
+        if (idToken) {
+            logoutUrl += `&id_token_hint=${encodeURIComponent(idToken)}`;
+        }
+
+        window.location.href = logoutUrl;
     }
 
-    const getSession = async (): Promise<CognitoUserSession> => {
-        return await new Promise((resolve, reject) => {
-            const user = UserPool.getCurrentUser();
+    const isAuthenticated = () => {
+        console.log(":::::::::::::: isAuthenticated ::::::::::::::")
+        const token = sessionStorage.getItem(STORAGE_ACCESS_TOKEN_KEY);
+        if (token && !isExpired(token)) {
+            return true;
+        }
 
-            if (!user) return reject("Brak użytkownika – niezalogowany.");
-
-            user.getSession((err: any, session: CognitoUserSession) => {
-                if (err || !session) return reject(err || "Brak sesji.");
-                resolve(session);
-            });
-        });
-    };
-
-    const getCurrentUser = (): CognitoUser | null => {
-        return UserPool.getCurrentUser();
-    };
-
-    const signOut = (): void => {
-        const user = UserPool.getCurrentUser();
-        if (user) user.signOut();
-        setIsLoggedIn(false);
+        clearToken()
+        return false;
     }
 
-    const confirmSignUp = async (email: string, code: string): Promise<void> => {
-        return await new Promise((resolve, reject) => {
-            const user = new CognitoUser({Username: email, Pool: UserPool});
-            user.confirmRegistration(code, true, (err) => err ? reject(err) : resolve());
-        });
+    const setTokenData = (id_token : string, access_token: string) => {
+        console.log(":::::::::::::: setTokenData ::::::::::::::")
+        sessionStorage.setItem(STORAGE_ACCESS_TOKEN_KEY, access_token);
+        sessionStorage.setItem(STORAGE_ID_TOKEN_KEY, id_token);
     }
 
-    const resendConfirmationCode = async (email: string): Promise<void> => {
-        return await new Promise((resolve, reject) => {
-            const user = new CognitoUser({Username: email, Pool: UserPool});
-            user.resendConfirmationCode((err) => err ? reject(err) : resolve());
-        });
+    const getAccessToken = () => {
+        console.log(":::::::::::::: getAccessToken ::::::::::::::")
+        const token = sessionStorage.getItem(STORAGE_ACCESS_TOKEN_KEY);
+        return token;
     }
 
-    const getAuthHeader = async (): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const user = UserPool.getCurrentUser();
-            if (!user) return reject("Brak użytkownika — nie zalogowany");
+    // local functions
+    function generateCodeVerifier(): string {
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
+        return base64UrlEncode(array);
+    }
 
-            user.getSession(async (err : any, session : CognitoUserSession) => {
-                if (err || !session) return reject("Brak sesji");
+    function base64UrlEncode(buffer: Uint8Array): string {
+        return btoa(String.fromCharCode(...buffer))
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+    }
 
-                const accessToken = session.getAccessToken();
-                const now = Math.floor(Date.now() / 1000);
+    function isExpired(token: string): boolean {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const now = Math.floor(Date.now() / 1000);
+        return payload.exp < now;
+    }
 
-                if (accessToken.getExpiration() > now) {
-                    return resolve(`Bearer ${accessToken.getJwtToken()}`);
-                }
-
-                const refreshTok = session.getRefreshToken();
-                if (!refreshTok) return reject("Brak refresh tokena — zaloguj się ponownie");
-
-                user.refreshSession(refreshTok, (err, newSession) => {
-                    if (err || !newSession) return reject("Nie udało się odświeżyć sesji");
-
-                    return resolve(`Bearer ${newSession.getAccessToken().getJwtToken()}`);
-                });
-            });
-        });
-    };
+    function clearToken() {
+        sessionStorage.removeItem(STORAGE_ACCESS_TOKEN_KEY);
+        sessionStorage.removeItem(STORAGE_ID_TOKEN_KEY);
+    }
 
     return (
         <AuthContext.Provider
-            value={{signUp, signIn, getSession, getCurrentUser, signOut, confirmSignUp, resendConfirmationCode, getAuthHeader, isLoggedIn, setIsLoggedIn}}>
+            value={{login, logout, isAuthenticated, getAccessToken, setTokenData}}>
             {props.children}
         </AuthContext.Provider>
     )

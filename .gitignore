@@ -3,3 +3,4 @@
 /infrastructure/terraform.tfstate
 /infrastructure/terraform.tfstate.backup
 /terraform.tfstate.backup
+/infrastructure/.env.txt

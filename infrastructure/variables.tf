@@ -9,3 +9,13 @@ variable "lambda_secret" {
   type        = string
   default = "secretendpoint"
 }
+
+variable "smtp_user" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_app_password" {
+  type      = string
+  sensitive = true
+}

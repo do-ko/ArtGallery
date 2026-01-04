@@ -1,7 +1,6 @@
 import {useEffect, useState} from "react";
 import HeaderBar from "../components/HeaderBar";
 import "./ProfilePage.css";
-import {useAuth} from "../auth/AuthContext";
 import {useNavigate} from "react-router-dom";
 import type {Artist} from "../types/artist";
 import {getProfile} from "../api/artistApi.ts";
@@ -16,14 +15,14 @@ export default function ProfilePage() {
     const [editing, setEditing] = useState(false);
     const [newDisplayName, setNewDisplayName] = useState("");
 
-    const {getAuthHeader} = useAuth();
+    // const {getAuthHeader} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
             try {
-                const authHeader = await getAuthHeader();
-                const response = await getProfile(authHeader);
+                // const authHeader = await getAuthHeader();
+                const response = await getProfile("temporary string");
                 setArtist(response);
                 setNewDisplayName(response.displayName ?? "");
             } catch (err) {

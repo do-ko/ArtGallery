@@ -27,3 +27,13 @@ variable "role_name" {
   description = "nazwa roli"
   type = string
 }
+
+variable "smtp_user" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_app_password" {
+  type      = string
+  sensitive = true
+}
