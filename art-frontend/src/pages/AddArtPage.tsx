@@ -3,10 +3,11 @@ import {useState} from "react";
 import "./AddArtPage.css";
 import {addArtwork, addArtworkImage} from "../api/artApi.ts";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../auth/AuthContext.tsx";
 
 export default function AddArtPage() {
     const navigate = useNavigate();
-    // const {getAuthHeader} = useAuth();
+    const {getAuthHeader} = useAuth();
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -51,7 +52,8 @@ export default function AddArtPage() {
 
         setLoading(true);
         try {
-            const presignedUrl = await addArtworkImage("authHeader", file.name, file?.type)
+            const authHeader = getAuthHeader();
+            const presignedUrl = await addArtworkImage(authHeader, file.name, file?.type)
 
             await fetch(presignedUrl.uploadUrl, {
                 method: "PUT",
@@ -61,7 +63,7 @@ export default function AddArtPage() {
 
             console.log(presignedUrl.imageUrl)
 
-            await addArtwork("authHeader", title, description, type, presignedUrl.imageUrl);
+            await addArtwork(authHeader, title, description, type, presignedUrl.imageUrl);
             navigate("/");
         } catch (e) {
             console.error(e);

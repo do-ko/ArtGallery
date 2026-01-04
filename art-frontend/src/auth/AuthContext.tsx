@@ -6,6 +6,7 @@ type AuthContextType = {
     isAuthenticated: () => boolean;
     setTokenData: (id_token : string, access_token: string) => void;
     getAccessToken: () => string | null;
+    getAuthHeader: () => string;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -92,6 +93,12 @@ export const AuthProvider = (props: any) => {
         return token;
     }
 
+    const getAuthHeader = () => {
+        console.log(":::::::::::::: getAuthHeader ::::::::::::::")
+        const token = getAccessToken();
+        return "Bearer " + token;
+    }
+
     // local functions
     function generateCodeVerifier(): string {
         const array = new Uint8Array(32);
@@ -119,7 +126,7 @@ export const AuthProvider = (props: any) => {
 
     return (
         <AuthContext.Provider
-            value={{login, logout, isAuthenticated, getAccessToken, setTokenData}}>
+            value={{login, logout, isAuthenticated, getAccessToken, setTokenData, getAuthHeader}}>
             {props.children}
         </AuthContext.Provider>
     )

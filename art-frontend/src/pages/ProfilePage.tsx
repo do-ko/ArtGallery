@@ -7,6 +7,7 @@ import {getProfile} from "../api/artistApi.ts";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import {useAuth} from "../auth/AuthContext.tsx";
 
 export default function ProfilePage() {
     const [artist, setArtist] = useState<Artist | null>(null);
@@ -15,14 +16,14 @@ export default function ProfilePage() {
     const [editing, setEditing] = useState(false);
     const [newDisplayName, setNewDisplayName] = useState("");
 
-    // const {getAuthHeader} = useAuth();
+    const {getAuthHeader} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
             try {
-                // const authHeader = await getAuthHeader();
-                const response = await getProfile("temporary string");
+                const authHeader = getAuthHeader();
+                const response = await getProfile(authHeader);
                 setArtist(response);
                 setNewDisplayName(response.displayName ?? "");
             } catch (err) {
