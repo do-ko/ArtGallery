@@ -68,7 +68,6 @@ module "keycloak" {
   alb_dns                        = module.alb.alb_dns_name
   smtp_user                      = var.smtp_user
   smtp_app_password              = var.smtp_app_password
-
 }
 
 
@@ -113,14 +112,15 @@ module "backend_logs" {
   tags = { Project = "art-gallery", Component = "backend" }
 }
 
-# RDS
-module "db" {
-  source             = "./modules/rds"
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
+# POSTGRES
+module "postgres" {
+  source = "./modules/postgres"
+  db_name = "artgallerydb"
   ingress_security_group_ids = [aws_security_group.backend.id]
-  db_name            = "artgallerydb"
-  username           = "artgallerydbuser"
+  private_subnet_ids = module.vpc.private_subnet_ids
+  role_name = data.aws_iam_role.lab_role.name
+  username = "artgallerydbuser"
+  vpc_id = module.vpc.vpc_id
 }
 
 # LAMBDA
@@ -136,15 +136,6 @@ module "post_confirmation_lambda" {
     INTERNAL_SECRET = var.lambda_secret
     API_URL         = module.alb.alb_dns_name
   }
-}
-
-# COGNITO
-module "cognito" {
-  source                       = "./modules/cognito"
-  name                         = "art_user_pool"
-  domain_prefix                = "do-ko-art-domain"
-  app_client_name              = "art-client"
-  post_confirmation_lambda_arn = module.post_confirmation_lambda.lambda_arn
 }
 
 # ECS
@@ -188,7 +179,7 @@ module "backend_taskdef" {
   environment = [
     {
       name  = "SPRING_DATASOURCE_URL"
-      value = "jdbc:postgresql://${module.db.db_endpoint}:5432/artgallerydb"
+      value = "jdbc:postgresql://${module.postgres.db_endpoint}:5432/artgallerydb"
     },
     {
       name  = "SPRING_PROFILES_ACTIVE"
@@ -211,11 +202,11 @@ module "backend_taskdef" {
   secrets = [
     {
       name       = "SPRING_DATASOURCE_USERNAME"
-      value_from = "${module.db.db_secret_arn}:username::"
+      value_from = "${module.postgres.db_secret_arn}:username::"
     },
     {
       name       = "SPRING_DATASOURCE_PASSWORD"
-      value_from = "${module.db.db_secret_arn}:password::"
+      value_from = "${module.postgres.db_secret_arn}:password::"
     }
   ]
 
