@@ -210,7 +210,7 @@ module "backend_taskdef" {
     }
   ]
 
-  depends_on = [module.backend_image_build]
+  depends_on = [module.backend_image_build, module.postgres]
 }
 
 # ECS SERVICE
