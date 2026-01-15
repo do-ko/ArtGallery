@@ -24,11 +24,6 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
 }
 
 # NETWORK
-resource "aws_db_subnet_group" "subnet_group" {
-  name       = "${var.db_name}-subnets"
-  subnet_ids = var.private_subnet_ids
-}
-
 resource "aws_security_group" "postgres" {
   name        = "${var.db_name}-sg"
   description = "PostgreSQL SG"
@@ -83,7 +78,6 @@ resource "aws_instance" "postgres" {
   vpc_security_group_ids = [aws_security_group.postgres.id]
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
-  #   user_data = file("${path.module}/user-data-postgres.sh")
   user_data = templatefile("${path.module}/user-data-postgres.sh.tpl", {
     db_name  = var.db_name
     username = var.username

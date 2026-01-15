@@ -1,6 +1,6 @@
 variable "role_name" {
   description = "nazwa roli"
-  type = string
+  type        = string
 }
 
 variable "db_name" { type = string }

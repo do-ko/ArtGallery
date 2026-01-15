@@ -70,13 +70,23 @@ module "keycloak" {
   smtp_app_password              = var.smtp_app_password
 }
 
-
 # S3
 module "art_storage" {
   source      = "./modules/s3"
   bucket_name = "art-storage-s3"
   alb_dns     = module.alb.alb_dns_name
 }
+
+# module "mini_io" {
+#   source      = "./modules/mini_io"
+#   alb_dns     = module.alb.alb_dns_name
+#   alb_security_group_id = module.alb.alb_sg_id
+#   backend_security_group_id = aws_security_group.backend.id
+#   miniio_alb_listener_http_arn = module.alb.listener_http_arn
+#   private_subnet_ids = module.vpc.private_subnet_ids
+#   role_name = data.aws_iam_role.lab_role.name
+#   vpc_id = module.vpc.vpc_id
+# }
 
 # ECR
 module "ecr" {
@@ -97,7 +107,6 @@ module "backend_image_build" {
   repo_name = module.ecr.backend_repo_name
   path      = "../art-backend"
 }
-
 
 # CLOUDWATCH
 module "frontend_logs" {
@@ -121,21 +130,6 @@ module "postgres" {
   role_name = data.aws_iam_role.lab_role.name
   username = "artgallerydbuser"
   vpc_id = module.vpc.vpc_id
-}
-
-# LAMBDA
-module "post_confirmation_lambda" {
-  source            = "./modules/lambda"
-  function_name     = "cognito_post_confirmation"
-  existing_role_arn = data.aws_iam_role.lab_role.arn
-  filename          = "./modules/lambda/lambda.zip"
-  handler           = "index.handler"
-  runtime           = "nodejs18.x"
-
-  environment = {
-    INTERNAL_SECRET = var.lambda_secret
-    API_URL         = module.alb.alb_dns_name
-  }
 }
 
 # ECS
@@ -188,10 +182,6 @@ module "backend_taskdef" {
     {
       name  = "KEYCLOAK_ISSUER_URI"
       value = "http://${module.alb.alb_dns_name}/realms/art-gallery"
-    },
-    {
-      name  = "INTERNAL_SECRET"
-      value = var.lambda_secret
     },
     {
       name  = "S3_BUCKET"
