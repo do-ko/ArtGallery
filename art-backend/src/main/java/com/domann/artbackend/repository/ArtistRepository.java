@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ArtistRepository extends JpaRepository<Artist, String> {
-    Optional<Artist> findByCognitoSub(String cognitoSub);
+    Optional<Artist> findBySub(String sub);
 }

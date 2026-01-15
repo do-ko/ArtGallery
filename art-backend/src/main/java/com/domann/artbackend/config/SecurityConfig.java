@@ -18,7 +18,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/art").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/art/url").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/artist/first-login").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/artist/me").authenticated()
                         .requestMatchers(
                                 "/api/**",
                                 "/swagger-ui/**",

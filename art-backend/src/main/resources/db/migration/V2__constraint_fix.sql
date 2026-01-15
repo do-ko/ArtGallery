@@ -1,5 +1,0 @@
-ALTER TABLE artist
-    ALTER COLUMN display_name DROP NOT NULL;
-
-ALTER TABLE artist
-    ALTER COLUMN email SET NOT NULL;

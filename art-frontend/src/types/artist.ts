@@ -1,6 +1,6 @@
 export type Artist = {
     id: string;
     displayName: string;
-    email: string;
+    description: string;
     artworkIds: string[];
 };

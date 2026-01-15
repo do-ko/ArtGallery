@@ -2,9 +2,9 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS public.artist (
     id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    cognito_sub     text UNIQUE NOT NULL,
+    sub             text UNIQUE NOT NULL,
     display_name    varchar(48) UNIQUE NOT NULL,
-    email           varchar(255) UNIQUE,
+    description     varchar(256),
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now()
     );

@@ -20,15 +20,8 @@ public class ArtistController {
     @GetMapping("/me")
     public ResponseEntity<ArtistDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
         String sub = jwt.getClaimAsString("sub");
-        String email = jwt.getClaimAsString("username");
-
-        ArtistDto artistDto = artistService.findByToken(sub, email);
-        return ResponseEntity.ok(artistDto);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ArtistDto> findArtistById(@PathVariable String id) {
-        ArtistDto artistDto = artistService.findById(id);
+        String displayName = jwt.getClaimAsString("preferred_username");
+        ArtistDto artistDto = artistService.findOrCreate(sub, displayName);
         return ResponseEntity.ok(artistDto);
     }
 }

@@ -7,9 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -18,9 +16,8 @@ import java.util.UUID;
 @Table(
         name = "artist",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_artist_cognito_sub", columnNames = "cognito_sub"),
-                @UniqueConstraint(name = "uk_artist_display_name", columnNames = "display_name"),
-                @UniqueConstraint(name = "uk_artist_email", columnNames = "email")
+                @UniqueConstraint(name = "uk_artist_sub", columnNames = "sub"),
+                @UniqueConstraint(name = "uk_artist_display_name", columnNames = "display_name")
         }
 )
 public class Artist {
@@ -30,11 +27,11 @@ public class Artist {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "display_name", length = ValidationConstants.ARTIST_DISPLAY_NAME_MAX_LENGTH)
+    @Column(name = "display_name", nullable = false, length = ValidationConstants.ARTIST_DISPLAY_NAME_MAX_LENGTH)
     private String displayName;
 
-    @Column(name = "email", nullable = false, length = 255)
-    private String email;
+    @Column(name = "description")
+    private String description;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -42,9 +39,9 @@ public class Artist {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // =========== COGNITO ===========
-    @Column(name = "cognito_sub", nullable = false, unique = true, length = 64, updatable = false)
-    private String cognitoSub;
+    // =========== KEYCLOAK ===========
+    @Column(name = "sub", nullable = false, unique = true, updatable = false)
+    private String sub;
 
     // =========== RELACJE ===========
     @OneToMany(
@@ -53,7 +50,7 @@ public class Artist {
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    private Set<Art> artworks = new HashSet<>();
+    private List<Art> artworks = new ArrayList<>();
 
     // =========== AUDIT ===========
     @PrePersist

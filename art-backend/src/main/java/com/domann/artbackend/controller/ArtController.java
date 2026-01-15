@@ -1,10 +1,8 @@
 package com.domann.artbackend.controller;
 
-import com.domann.artbackend.dto.AddArtRequest;
-import com.domann.artbackend.dto.ArtDto;
-import com.domann.artbackend.dto.ArtImageUploadRequest;
-import com.domann.artbackend.dto.PresignedUrlResponse;
+import com.domann.artbackend.dto.*;
 import com.domann.artbackend.service.ArtService;
+import com.domann.artbackend.service.ArtistService;
 import com.domann.artbackend.service.AwsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,6 +26,7 @@ public class ArtController {
 
     private final ArtService artService;
     private final AwsService awsService;
+    private final ArtistService artistService;
 
     @Value("${app.s3.bucket}")
     private String bucket;
@@ -45,12 +44,19 @@ public class ArtController {
     public ResponseEntity<ArtDto> createNewArt(@AuthenticationPrincipal Jwt jwt,
                                                @Valid @RequestBody AddArtRequest request) {
         String sub = jwt.getClaimAsString("sub");
+        String displayName = jwt.getClaimAsString("preferred_username");
+        artistService.findOrCreate(sub, displayName);
+
         ArtDto artDto = artService.addNewArt(request, sub);
         return ResponseEntity.ok(artDto);
     }
 
     @PostMapping("/url")
-    public ResponseEntity<PresignedUrlResponse> generate(@RequestBody ArtImageUploadRequest request) {
+    public ResponseEntity<PresignedUrlResponse> generateUrl(@AuthenticationPrincipal Jwt jwt,
+                                                            @RequestBody ArtImageUploadRequest request) {
+        String sub = jwt.getClaimAsString("sub");
+        String displayName = jwt.getClaimAsString("preferred_username");
+        artistService.findOrCreate(sub, displayName);
 
         String key = "artworks/" + UUID.randomUUID() + "-" + request.getFilename();
 

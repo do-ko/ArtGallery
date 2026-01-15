@@ -29,9 +29,9 @@ public class ArtService {
     }
 
     @Transactional
-    public ArtDto addNewArt(AddArtRequest addArtRequest, String cognitoSub) {
-        Artist artist = artistRepository.findByCognitoSub(cognitoSub)
-                .orElseThrow(() -> new NoSuchElementException("Artist with sub: " + cognitoSub + " not found."));
+    public ArtDto addNewArt(AddArtRequest addArtRequest, String sub) {
+        Artist artist = artistRepository.findBySub(sub)
+                .orElseThrow(() -> new NoSuchElementException("Artist with sub: " + sub + " not found."));
 
         Art art = new Art();
         art.setTitle(addArtRequest.getTitle());

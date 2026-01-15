@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -15,13 +16,13 @@ import java.util.UUID;
 public class ArtistDto {
     private UUID id;
     private String displayName;
-    private String email;
+    private String descritpion;
     private List<UUID> artworkIds;
 
-    public ArtistDto(Artist artist) {
+    public ArtistDto(Artist artist, List<Art> artworks) {
         this.id = artist.getId();
         this.displayName = artist.getDisplayName();
-        this.email = artist.getEmail();
-        this.artworkIds = artist.getArtworks().stream().map(Art::getId).toList();
+        this.descritpion = artist.getDescription();
+        this.artworkIds = artworks.stream().map(Art::getId).toList();
     }
 }

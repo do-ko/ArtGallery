@@ -93,7 +93,6 @@ export default function ProfilePage() {
                             )}
                         </div>
 
-                        <p className="email">{artist.email}</p>
                         <p className="count">{artist.artworkIds.length} artworks uploaded</p>
                     </div>
                 </div>
