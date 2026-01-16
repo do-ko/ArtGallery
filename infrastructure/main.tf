@@ -70,23 +70,17 @@ module "keycloak" {
   smtp_app_password              = var.smtp_app_password
 }
 
-# S3
-module "art_storage" {
-  source      = "./modules/s3"
-  bucket_name = "art-storage-s3"
+# MINIO
+module "min_io" {
+  source      = "./modules/min_io"
   alb_dns     = module.alb.alb_dns_name
+  alb_security_group_id = module.alb.alb_sg_id
+  backend_security_group_id = aws_security_group.backend.id
+  minio_alb_listener_http_arn = module.alb.listener_http_arn
+  private_subnet_ids = module.vpc.private_subnet_ids
+  role_name = data.aws_iam_role.lab_role.name
+  vpc_id = module.vpc.vpc_id
 }
-
-# module "mini_io" {
-#   source      = "./modules/mini_io"
-#   alb_dns     = module.alb.alb_dns_name
-#   alb_security_group_id = module.alb.alb_sg_id
-#   backend_security_group_id = aws_security_group.backend.id
-#   miniio_alb_listener_http_arn = module.alb.listener_http_arn
-#   private_subnet_ids = module.vpc.private_subnet_ids
-#   role_name = data.aws_iam_role.lab_role.name
-#   vpc_id = module.vpc.vpc_id
-# }
 
 # ECR
 module "ecr" {
@@ -184,8 +178,20 @@ module "backend_taskdef" {
       value = "http://${module.alb.alb_dns_name}/realms/art-gallery"
     },
     {
-      name  = "S3_BUCKET"
-      value = module.art_storage.bucket_name
+      name  = "MINIO_BUCKET"
+      value = "bucket"
+    },
+    {
+      name  = "MINIO_ENDPOINT"
+      value = "http://${module.alb.alb_dns_name}"
+    },
+    {
+      name  = "MINIO_ACCESS_KEY"
+      value = module.min_io.access_key
+    },
+    {
+      name  = "MINIO_SECRET_KEY"
+      value = module.min_io.secret_key
     }
   ]
 

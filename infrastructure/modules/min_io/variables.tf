@@ -12,7 +12,7 @@ variable "role_name" {
   description = "nazwa roli"
   type = string
 }
-variable "miniio_alb_listener_http_arn" {
+variable "minio_alb_listener_http_arn" {
   description = "ALB LISTENER HTTP ARN"
   type        = string
 }

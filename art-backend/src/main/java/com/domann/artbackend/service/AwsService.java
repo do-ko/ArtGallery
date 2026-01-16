@@ -1,37 +1,37 @@
 package com.domann.artbackend.service;
 
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MinioClient;
+import io.minio.errors.*;
+import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-
-import java.net.URL;
-import java.time.Duration;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class AwsService {
 
-    private final S3Presigner presigner;
-
-    @Value("${app.s3.bucket}")
+    @Value("${app.minio.bucket}")
     private String bucket;
 
-    public URL generateUploadUrl(String key, String contentType) {
+    private final MinioClient minioClient;
 
-        PutObjectRequest putRequest = PutObjectRequest.builder()
+    public String generateUploadUrl(String key, String contentType) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", contentType);
+
+        return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                .method(Method.PUT)
                 .bucket(bucket)
-                .key(key)
-                .contentType(contentType)
-                .build();
-
-        PresignedPutObjectRequest presigned = presigner.presignPutObject(
-                b -> b.signatureDuration(Duration.ofMinutes(10))
-                        .putObjectRequest(putRequest)
-        );
-
-        return presigned.url();
+                .object(key)
+                .expiry(600)
+                .extraHeaders(headers)
+                .build());
     }
 }
