@@ -27,7 +27,7 @@ apiVersion: 1
 
 datasources:
   - name: Prometheus
-    uid: PROMETHEUS_DS
+    uid: PROMETHEUS_DATASOURCE
     type: prometheus
     access: proxy
     url: http://${alb_dns}/prometheus
@@ -63,7 +63,7 @@ cat <<'EOF' > /etc/grafana/provisioning/dashboards/guestbook-dashboard.json
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PROMETHEUS_DS"
+        "uid": "PROMETHEUS_DATASOURCE"
       },
       "type": "stat",
       "title": "HTTP Requests (total)",
@@ -78,7 +78,7 @@ cat <<'EOF' > /etc/grafana/provisioning/dashboards/guestbook-dashboard.json
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PROMETHEUS_DS"
+        "uid": "PROMETHEUS_DATASOURCE"
       },
       "type": "timeseries",
       "title": "JVM Heap Used",
@@ -93,7 +93,7 @@ cat <<'EOF' > /etc/grafana/provisioning/dashboards/guestbook-dashboard.json
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PROMETHEUS_DS"
+        "uid": "PROMETHEUS_DATASOURCE"
       },
       "type": "timeseries",
       "title": "HTTP Requests per Status",
