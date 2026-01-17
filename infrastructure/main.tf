@@ -47,7 +47,7 @@ resource "aws_security_group" "backend" {
     from_port = 8080
     to_port   = 8080
     protocol  = "tcp"
-    security_groups = [module.alb.alb_sg_id]
+    security_groups = [module.alb.alb_sg_id, module.prometheus.prometheus_sg_id]
   }
   egress {
     from_port = 0
@@ -129,6 +129,17 @@ module "postgres" {
   ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
 }
 
+# PROMETHEUS
+module "prometheus" {
+  source = "./modules/prometheus"
+  private_subnet_ids = module.vpc.private_subnet_ids
+  vpc_id = module.vpc.vpc_id
+  aws_ami_id = data.aws_ami.amazon_linux_2023.id
+  ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
+  alb_dns = module.alb.alb_dns_name
+  alb_listener_http_arn = module.alb.listener_http_arn
+  alb_sg_id = module.alb.alb_sg_id
+}
 
 # =====================================
 
