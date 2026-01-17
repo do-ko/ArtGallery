@@ -141,6 +141,17 @@ module "prometheus" {
   alb_sg_id = module.alb.alb_sg_id
 }
 
+# GRAFANA
+module "grafana" {
+  source = "./modules/grafana"
+  vpc_id = module.vpc.vpc_id
+  aws_ami_id = data.aws_ami.amazon_linux_2023.id
+  ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
+  alb_sg_id = module.alb.alb_sg_id
+  alb_listener_http_arn = module.alb.listener_http_arn
+  private_subnet_ids = module.vpc.private_subnet_ids
+}
+
 # =====================================
 
 
