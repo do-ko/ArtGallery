@@ -3,7 +3,7 @@ set -e
 
 echo "Install dependencies"
 dnf update -y
-dnf install -y postgresql15-server postgresql15-contrib awscli jq firewalld
+dnf install -y postgresql15-server postgresql15-contrib awscli jq
 
 echo "Mounting storage volume"
 echo "Waiting for data disk..."
@@ -54,12 +54,6 @@ sed -i "s/^listen_addresses =.*/listen_addresses = '*'/" "$PGDATA/postgresql.con
 
 grep -q "10.0.0.0/16" "$PGDATA/pg_hba.conf" || \
 echo "host all all 10.0.0.0/16 scram-sha-256" >> "$PGDATA/pg_hba.conf"
-
-echo "Config firewall"
-systemctl enable firewalld
-systemctl start firewalld
-firewall-cmd --permanent --add-port=5432/tcp
-firewall-cmd --reload
 
 echo "=== Start Postgres ==="
 systemctl enable postgresql

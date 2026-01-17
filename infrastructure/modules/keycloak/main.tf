@@ -1,19 +1,20 @@
+# NETWORK
 resource "aws_security_group" "keycloak" {
   name   = "keycloak-sg"
-  vpc_id = var.keycloak_vpc_id
+  vpc_id = var.vpc_id
 
   ingress {
     from_port       = 8180
     to_port         = 8180
     protocol        = "tcp"
-    security_groups = [var.keycloak_alb_sg_id]
+    security_groups = [var.alb_sg_id]
   }
 
   ingress {
     from_port       = 9000
     to_port         = 9000
     protocol        = "tcp"
-    security_groups = [var.keycloak_alb_sg_id]
+    security_groups = [var.alb_sg_id]
   }
 
   egress {
@@ -28,7 +29,7 @@ resource "aws_lb_target_group" "keycloak" {
   name        = "keycloak-tg"
   port        = 8180
   protocol    = "HTTP"
-  vpc_id     = var.keycloak_vpc_id
+  vpc_id     = var.vpc_id
   target_type = "instance"
 
   health_check {

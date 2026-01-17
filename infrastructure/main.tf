@@ -90,8 +90,8 @@ data "aws_ami" "amazon_linux_2023" {
 # KEYCLOAK
 module "keycloak" {
   source                         = "./modules/keycloak"
-  keycloak_alb_sg_id             = module.alb.alb_sg_id
-  keycloak_vpc_id                = module.vpc.vpc_id
+  alb_sg_id             = module.alb.alb_sg_id
+  vpc_id                = module.vpc.vpc_id
   private_subnet_ids             = module.vpc.private_subnet_ids
   role_name                      = data.aws_iam_role.lab_role.name
   keycloak_alb_listener_http_arn = module.alb.listener_http_arn
@@ -120,7 +120,7 @@ module "min_io" {
 module "postgres" {
   source = "./modules/postgres"
   db_name = "artgallerydb"
-  ingress_security_group_ids = [aws_security_group.backend.id]
+  backend_sg_id = aws_security_group.backend.id
   private_subnet_ids = module.vpc.private_subnet_ids
   role_name = data.aws_iam_role.lab_role.name
   username = "artgallerydbuser"

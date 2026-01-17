@@ -1,9 +1,9 @@
-variable "keycloak_vpc_id" {
+variable "vpc_id" {
   description = "ID VPC"
   type        = string
 }
 
-variable "keycloak_alb_sg_id" {
+variable "alb_sg_id" {
   description = "ALB SG ID"
   type        = string
 }

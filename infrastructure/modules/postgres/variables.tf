@@ -7,9 +7,9 @@ variable "db_name" { type = string }
 variable "username" { type = string }
 variable "vpc_id" { type = string }
 variable "private_subnet_ids" { type = list(string) }
-variable "ingress_security_group_ids" {
-  description = "SG, które mogą łączyć się do RDS (np. SG backendu ECS)"
-  type = list(string)
+variable "backend_sg_id" {
+  description = "BACKEND SG ID"
+  type = string
 }
 variable aws_ami_id {
   description = "AWS AMI ID"
