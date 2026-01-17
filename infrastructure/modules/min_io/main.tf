@@ -36,13 +36,6 @@ resource "aws_security_group" "minio" {
     security_groups = [var.alb_security_group_id]
   }
 
-  ingress {
-    from_port = 9001
-    to_port   = 9001
-    protocol  = "tcp"
-    security_groups = [var.alb_security_group_id]
-  }
-
   egress {
     from_port = 0
     to_port   = 0
@@ -85,40 +78,20 @@ resource "aws_lb_listener_rule" "minio" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "minio" {
+  target_group_arn = aws_lb_target_group.minio.arn
+  target_id        = aws_instance.minio.id
+  port             = 9000
+}
+
 
 # INSTANCJA EC2
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "minio-ec2-profile"
-  role = var.role_name
-}
-
-data "aws_ami" "amazon_linux_2023" {
-  most_recent = true
-
-  owners = ["amazon"]
-
-  filter {
-    name = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 resource "aws_instance" "minio" {
-  ami                  = data.aws_ami.amazon_linux_2023.id
+  ami                  = var.aws_ami_id
   instance_type        = "t3.small"
   subnet_id            = var.private_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.minio.id]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile = var.ec2_profile_name
 
   user_data = templatefile("${path.module}/user-data-minio.sh.tpl", {
     access_key = jsondecode(aws_secretsmanager_secret_version.minio_secret.secret_string)["access_key"]
@@ -131,11 +104,6 @@ resource "aws_instance" "minio" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "minio" {
-  target_group_arn = aws_lb_target_group.minio.arn
-  target_id        = aws_instance.minio.id
-  port             = 9000
-}
 
 # EBS
 resource "aws_ebs_volume" "minio_data" {

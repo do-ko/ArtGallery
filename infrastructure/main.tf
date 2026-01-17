@@ -57,6 +57,36 @@ resource "aws_security_group" "backend" {
   }
 }
 
+
+
+# =====================================
+# EC2
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2-profile"
+  role = data.aws_iam_role.lab_role.name
+}
+
+data "aws_ami" "amazon_linux_2023" {
+  most_recent = true
+
+  owners = ["amazon"]
+
+  filter {
+    name = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+
+  filter {
+    name = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # KEYCLOAK
 module "keycloak" {
   source                         = "./modules/keycloak"
@@ -68,6 +98,8 @@ module "keycloak" {
   alb_dns                        = module.alb.alb_dns_name
   smtp_user                      = var.smtp_user
   smtp_app_password              = var.smtp_app_password
+  aws_ami_id = data.aws_ami.amazon_linux_2023.id
+  ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
 }
 
 # MINIO
@@ -80,7 +112,26 @@ module "min_io" {
   private_subnet_ids = module.vpc.private_subnet_ids
   role_name = data.aws_iam_role.lab_role.name
   vpc_id = module.vpc.vpc_id
+  aws_ami_id = data.aws_ami.amazon_linux_2023.id
+  ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
 }
+
+# POSTGRES
+module "postgres" {
+  source = "./modules/postgres"
+  db_name = "artgallerydb"
+  ingress_security_group_ids = [aws_security_group.backend.id]
+  private_subnet_ids = module.vpc.private_subnet_ids
+  role_name = data.aws_iam_role.lab_role.name
+  username = "artgallerydbuser"
+  vpc_id = module.vpc.vpc_id
+  aws_ami_id = data.aws_ami.amazon_linux_2023.id
+  ec2_profile_name = aws_iam_instance_profile.ec2_profile.name
+}
+
+
+# =====================================
+
 
 # ECR
 module "ecr" {
@@ -113,17 +164,6 @@ module "backend_logs" {
   source = "./modules/logs"
   name   = "/ecs/art-backend"
   tags = { Project = "art-gallery", Component = "backend" }
-}
-
-# POSTGRES
-module "postgres" {
-  source = "./modules/postgres"
-  db_name = "artgallerydb"
-  ingress_security_group_ids = [aws_security_group.backend.id]
-  private_subnet_ids = module.vpc.private_subnet_ids
-  role_name = data.aws_iam_role.lab_role.name
-  username = "artgallerydbuser"
-  vpc_id = module.vpc.vpc_id
 }
 
 # ECS

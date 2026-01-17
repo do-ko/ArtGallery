@@ -59,40 +59,19 @@ resource "aws_lb_listener_rule" "keycloak" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "keycloak" {
+  target_group_arn = aws_lb_target_group.keycloak.arn
+  target_id        = aws_instance.keycloak.id
+  port             = 8180
+}
 
 # INSTANCJA EC2
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "keycloak-ec2-profile"
-  role = var.role_name
-}
-
-data "aws_ami" "amazon_linux_2023" {
-  most_recent = true
-
-  owners = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 resource "aws_instance" "keycloak" {
-  ami                    = data.aws_ami.amazon_linux_2023.id
+  ami                    = var.aws_ami_id
   instance_type          = "t3.small"
   subnet_id              = var.private_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.keycloak.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile   = var.ec2_profile_name
 
   user_data = templatefile(
     "${path.module}/user-data-keycloak.sh.tpl",
@@ -107,10 +86,4 @@ resource "aws_instance" "keycloak" {
   tags = {
     Name = "keycloak-ec2"
   }
-}
-
-resource "aws_lb_target_group_attachment" "keycloak" {
-  target_group_arn = aws_lb_target_group.keycloak.arn
-  target_id        = aws_instance.keycloak.id
-  port             = 8180
 }

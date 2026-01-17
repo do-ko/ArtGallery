@@ -45,38 +45,12 @@ resource "aws_security_group" "postgres" {
 }
 
 # INSTANCJA EC2
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "postgres-ec2-profile"
-  role = var.role_name
-}
-
-data "aws_ami" "amazon_linux_2023" {
-  most_recent = true
-
-  owners = ["amazon"]
-
-  filter {
-    name = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 resource "aws_instance" "postgres" {
-  ami           = data.aws_ami.amazon_linux_2023.id
+  ami           = var.aws_ami_id
   instance_type = "t3.small"
   subnet_id     = var.private_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.postgres.id]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile = var.ec2_profile_name
 
   user_data = templatefile("${path.module}/user-data-postgres.sh.tpl", {
     db_name  = var.db_name

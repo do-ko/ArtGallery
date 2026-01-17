@@ -37,3 +37,13 @@ variable "smtp_app_password" {
   type      = string
   sensitive = true
 }
+
+variable aws_ami_id {
+  description = "AWS AMI ID"
+  type        = string
+}
+
+variable ec2_profile_name {
+  description = "EC2 PROFILE NAME"
+  type        = string
+}
