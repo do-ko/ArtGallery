@@ -70,6 +70,7 @@ resource "aws_instance" "grafana" {
   user_data = templatefile(
     "${path.module}/user-data-grafana.sh.tpl",
     {
+      alb_dns = var.alb_dns,
     }
   )
   user_data_replace_on_change = true

@@ -150,6 +150,7 @@ module "grafana" {
   alb_sg_id = module.alb.alb_sg_id
   alb_listener_http_arn = module.alb.listener_http_arn
   private_subnet_ids = module.vpc.private_subnet_ids
+  alb_dns = module.alb.alb_dns_name
 }
 
 # =====================================

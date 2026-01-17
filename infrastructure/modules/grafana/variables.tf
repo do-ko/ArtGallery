@@ -16,3 +16,7 @@ variable ec2_profile_name {
   type        = string
 }
 variable "private_subnet_ids" { type = list(string) }
+variable "alb_dns" {
+  description = "ALB DNS"
+  type        = string
+}
