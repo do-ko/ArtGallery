@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
 
-dnf update -y
-
-echo "=== Prepare repo ==="
+echo "===> Konfiguracja repozytorium Grafana OSS..."
+# konfiguracja repozytorium YUM/DNF dla Grafany, dzięki której system wie skąd pobrać pakiet grafana.
 cat <<EOF > /etc/yum.repos.d/grafana.repo
 [grafana]
 name=Grafana OSS
@@ -15,13 +14,25 @@ gpgkey=https://rpm.grafana.com/gpg.key
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 EOF
+echo "===> Repozytorium Grafana OSS zostało skonfigurowane."
 
-echo "=== Grafana provisioning ==="
 
+echo "===> Instalowanie zależności i grafany..."
+dnf update -y
+dnf install -y grafana
+echo "===> Grafana i zależności zostały zainstalowane."
+
+
+
+
+echo "===> Przygotowanie katalogów provisioning Grafany..."
 mkdir -p /etc/grafana/provisioning/datasources
 mkdir -p /etc/grafana/provisioning/dashboards
+echo "===> Katalogi provisioning Grafany zostały przygotowane."
 
-# Datasource
+
+echo "===> Konfiguracja datasource Prometheus dla Grafany..."
+# skąd brać dane
 cat <<'EOF' > /etc/grafana/provisioning/datasources/datasource.yml
 apiVersion: 1
 
@@ -33,8 +44,12 @@ datasources:
     url: http://${alb_dns}/prometheus
     isDefault: true
 EOF
+echo "===> Datasource Prometheus został skonfigurowany."
 
-# Dashboard provider
+
+
+echo "===> Konfiguracja providerów dashboardów Grafany..."
+# skąd brać dashboardy
 cat <<'EOF' > /etc/grafana/provisioning/dashboards/dashboard.yml
 apiVersion: 1
 
@@ -49,14 +64,17 @@ providers:
     options:
       path: /etc/grafana/provisioning/dashboards
 EOF
+echo "===> Provider dashboardów został skonfigurowany."
 
-# Dashboard JSON
-cat <<'EOF' > /etc/grafana/provisioning/dashboards/guestbook-dashboard.json
+
+echo "===> Instalacja dashboardu ArtGallery..."
+# sama konfiguracja dashboardu z providera z poprzedniego configu
+cat <<'EOF' > /etc/grafana/provisioning/dashboards/artgallery-dashboard.json
 {
   "uid": "artgallery-backend",
   "title": "ArtGallery",
   "timezone": "browser",
-  "schemaVersion": 37,
+  "schemaVersion": 1,
   "version": 1,
   "refresh": "10s",
   "panels": [
@@ -108,10 +126,10 @@ cat <<'EOF' > /etc/grafana/provisioning/dashboards/guestbook-dashboard.json
   ]
 }
 EOF
+echo "===> Dashboard ArtGallery został zainstalowany."
 
-echo "=== Install Grafana ==="
-dnf install -y grafana
 
+echo "===> Konfiguracja podstawowych ustawień Grafany..."
 cat <<EOF > /etc/grafana/grafana.ini
 [server]
 http_port = 3000
@@ -126,10 +144,15 @@ admin_password = admin
 [auth.anonymous]
 enabled = false
 EOF
+echo "===> Konfiguracja Grafany (grafana.ini) została zapisana."
 
 
-echo "=== Starting grafana ==="
+
+echo "===> Uruchomienie serwisu grafana..."
 systemctl daemon-reload
 systemctl enable grafana-server
 systemctl start grafana-server
-echo "=== Grafana started ==="
+echo "===> Serwis grafana został uruchomiony"
+
+
+echo "===> Skrypt user-data grafana został zakońcony."

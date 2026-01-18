@@ -1,27 +1,42 @@
 #!/bin/bash
 set -e
 
-echo "Install dependencies"
+echo "===> Instalowanie zależności..."
 dnf update -y
 dnf install -y wget
+echo "===> Zależności zostały zainstalowane."
 
-# Directories
-echo "Creating directories"
-mkdir -p /etc/prometheus
-mkdir -p /var/lib/prometheus
 
-# Download Prometheus
-echo "Downloading Prometheus"
+
+echo "===> Tworzenie użytkownika prometheus..."
+id prometheus &>/dev/null || useradd --system --no-create-home --shell /sbin/nologin prometheus
+echo "===> Użytkownik prometheus został przygotowany."
+
+
+
+echo "===> Pobieranie Prometheusa..."
 cd /tmp
 wget https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
 tar xzf prometheus-2.52.0.linux-amd64.tar.gz
+echo "===> Prometheusa został pobrany i rozpakowany."
 
-echo "Copying binaries"
-cp prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/
-cp prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/
-chmod +x /usr/local/bin/prometheus /usr/local/bin/promtool
 
-echo "Creating config"
+
+echo "===> Instalowanie binarek Prometheusa..."
+install -m 0755 prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/prometheus
+install -m 0755 prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/promtool
+echo "===> Binarki Prometheusa (prometheus, promtool) zostały zainstalowane."
+
+
+
+echo "===> Tworzenie katalogów dla Prometheusa..."
+mkdir -p /etc/prometheus
+mkdir -p /var/lib/prometheus
+chown -R prometheus:prometheus /etc/prometheus /var/lib/prometheus
+echo "===> Katalogi zostały utworzone."
+
+
+echo "===> Tworzenie konfiguracji Prometheusa..."
 cat <<'EOF' > /etc/prometheus/prometheus.yml
 global:
   scrape_interval: 15s
@@ -38,8 +53,11 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 EOF
+echo "===> Konfiguracja Prometheusa została utworzona."
 
-echo "Creating service"
+
+
+echo "===> Przygotowanie serwisu dla prometheus..."
 cat <<'EOF' > /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus
@@ -47,6 +65,8 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+User=prometheus
+Group=prometheus
 ExecStart=/usr/local/bin/prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
   --storage.tsdb.path=/var/lib/prometheus \
@@ -59,10 +79,15 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+echo "===> Serwis został przygotowany."
 
-echo "Starting service"
+
+
+echo "===> Uruchomienie serwisu prometheus..."
 systemctl daemon-reload
 systemctl enable prometheus
 systemctl start prometheus
+echo "===> Serwis prometheus został uruchomiony"
 
-echo "=== Prometheus started ==="
+
+echo "===> Skrypt user-data prometheusa został zakońcony."
