@@ -10,13 +10,6 @@ resource "aws_security_group" "keycloak" {
     security_groups = [var.alb_sg_id]
   }
 
-  ingress {
-    from_port       = 9000
-    to_port         = 9000
-    protocol        = "tcp"
-    security_groups = [var.alb_sg_id]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -35,7 +28,7 @@ resource "aws_lb_target_group" "keycloak" {
   health_check {
     path                = "/health/ready"
     protocol            = "HTTP"
-    port                = "9000"
+    port                = "8180"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2

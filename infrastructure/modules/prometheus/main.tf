@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "prometheus" {
   health_check {
     path                = "/prometheus/-/healthy"
     protocol            = "HTTP"
-    port                = "9000"
+    port                = "9090"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
