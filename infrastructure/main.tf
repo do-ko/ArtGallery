@@ -247,14 +247,6 @@ module "backend_taskdef" {
     {
       name  = "MINIO_ENDPOINT"
       value = "http://${module.alb.alb_dns_name}"
-    },
-    {
-      name  = "MINIO_ACCESS_KEY"
-      value = module.min_io.access_key
-    },
-    {
-      name  = "MINIO_SECRET_KEY"
-      value = module.min_io.secret_key
     }
   ]
 
@@ -266,6 +258,14 @@ module "backend_taskdef" {
     {
       name       = "SPRING_DATASOURCE_PASSWORD"
       value_from = "${module.postgres.db_secret_arn}:password::"
+    },
+    {
+      name  = "MINIO_ACCESS_KEY"
+      value_from = "${module.min_io.minio_secret_arn}:access_key::"
+    },
+    {
+      name  = "MINIO_SECRET_KEY"
+      value_from = "${module.min_io.minio_secret_arn}:secret_key::"
     }
   ]
 

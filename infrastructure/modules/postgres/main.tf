@@ -5,15 +5,9 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 }
 
 resource "random_password" "db" {
-  length           = 24
-  special          = true
-  override_special = "!#$%^&*()-_=+[]{}<>?:.,;"
-  min_lower        = 1
-  min_upper        = 1
-  min_numeric      = 1
-  min_special      = 1
+  length  = 24
+  special = false
 }
-
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
 
