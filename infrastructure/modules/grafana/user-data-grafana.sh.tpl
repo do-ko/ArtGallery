@@ -130,6 +130,10 @@ echo "===> Dashboard ArtGallery został zainstalowany."
 
 
 echo "===> Konfiguracja podstawowych ustawień Grafany..."
+# domain = puste bo ma wziąć z nagłówka Host w zapytaniu - pobierze dns alb.
+# %(protocol)s - http lub https
+# %(domain)s - albo domena z domain= albo Host czyli u mnie z Host
+# serve_from_sub_path musi być true żeby uży ścieżki /grafana z root_url
 cat <<EOF > /etc/grafana/grafana.ini
 [server]
 http_port = 3000

@@ -23,6 +23,7 @@ echo "===> Prometheusa został pobrany i rozpakowany."
 
 
 echo "===> Instalowanie binarek Prometheusa..."
+# 0755 pozwala na automatyczne przyznanie dostępu przy instalacji
 install -m 0755 prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/prometheus
 install -m 0755 prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/promtool
 echo "===> Binarki Prometheusa (prometheus, promtool) zostały zainstalowane."
